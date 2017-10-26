@@ -179,28 +179,45 @@ Our code for computing Legendre polynomials and
 Gauss-Legendre nodes and weights is available
 in the Arb library \cite{Johansson2017arb}.
 
-\section{Some useful bounds}
+\section{General remarks about Legendre polynomials}
 
-Bernstein (\cite{borwein2012polynomials}, E.5):
+We restrict our attention to
+evaluating $P_n(x)$ for real $|x| \le 1$,
+which is the most interesting part of the domain for applications
+(in addition, real $|x| > 1$ can be handled with naive numerical methods).
+Since $P_n(-x) = (-1)^n P_n(x)$, we can further
+restrict to $0 \le x \le 1$.
+For rigorous evaluation of $P_n(z)$ with complex $z$
+and Legendre functions of non-integer order $n$,
+we note that generic methods for the hypergeometric ${}_2F_1$ function
+can be used if $n$ is not extremely large; see~\cite{johansson2016hypergeometric}.
 
-$$|p^{(m)}(x)| \le \left(\frac{2n}{\sqrt{1-x^2}}\right)^m$$
+Some authors suggest working with $P_n(\cos(\theta))$ instead of $P_n(x)$
+directly to improve numerical stability for $x$ close to 1, but
+this is not necessary in arbitrary-precision arithmetic since
+a slight precision increase (of the order $O(\log n)$ bits)
+works as well.
 
-Markov:
-$$|p^{(m)}(x)| \le (n(n-1)\cdots(n-m+1))^2$$
+In general, we want to evaluate $P_n(x)$ at a real ball $x = [m \pm r]$,
+yielding an enclosure $y = [m' \pm r']$ such that $P_n(\xi) \in y$ holds for all
+$\xi \in x$. Since some of the evaluation algorithms would produce
+unsatisfactorily large enclosures when executed in ball arithmetic if $r > 0$,
+we evaluate $P_n(m)$ (with higher internal precision if necessary) and separately
+bound the propagated error $\varepsilon_{prop} = \max_{\xi \in x} |P_n(\xi) - P_n(m)|$
+using a first-order bound
+$$\varepsilon_{prop} \le r \max_{\xi \in x} |P'_n(\xi)|.$$
+Similarly, we use a bound for $P''_n$ to compute a reasonably
+tight enclosure for $P'_n([m \pm r])$.
 
+%$$|p^{(d)}(x)| \le \left(\frac{2n}{\sqrt{1-x^2}}\right)^d$$
+%Markov: $$|p^{(d)}(x)| \le (n(n-1)\cdots(n-d+1))^2$$
 
-$$|P_n'(x)| \le \min\left(\frac{n(n+1)}{2}, \frac{n}{\sqrt{1-x^2}}\right)$$
-
-$$|P_n''(x)| \le \min\left(\frac{(n+2)(n+1)n(n-1)}{8}, \frac{2|x||P'(x)| + n(n+1)}{1-x^2}\right)$$
-
-We need to quickly estimate the magnitude of binomial coefficients
-for error bounds of series truncations.
-We have the binary entropy estimate
-$$\log_2 {n \choose k} \le n G(k/n), \quad G(x) = -x \log_2(x) - (1-x) \log_2(1-x)$$
-and the equivalent form
-$${n \choose k} \le \left(\frac{n}{n-k}\right)^{n-k} \left(\frac{n}{k}\right)^k = \frac{n^n}{k^k (n-k)^{n-k}}.$$
-The function $G(x)$ can be evaluated cheaply with a precomputed
-lookup table (only a coarse estimate is needed).
+Using the Bernstein inequality (see \cite{borwein2012polynomials}, chapter 5)
+and the fact that $|P^{(d)}_n(x)| \le |P^{(d)}_n(1)|$ for $-1 \le x \le 1$,
+we have
+$$|P_n'(x)| \le \min\left(\frac{n(n+1)}{2}, \frac{n}{\sqrt{1-x^2}}\right), \quad -1 \le x \le 1$$
+and contiguous relations yield
+$$|P_n''(x)| \le \min\left(\frac{(n+2)(n+1)n(n-1)}{8}, \frac{2|x||P_n'(x)| + n(n+1)}{1-x^2}\right), \quad -1 \le x \le 1.$$
 
 \section{Basecase recurrence}
 
@@ -426,6 +443,26 @@ $|P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n$.
 Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
 is about $n \log_2(|x| + \sqrt{1 + |x|^2})$ bits
 (which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$).
+
+\subsection{Binomial coefficients}
+
+The prefactors of both the series expansion at $x = 0$ and the asymptotic series
+contain the central binomial coefficient ${2n \choose n}$.
+We need to compute this factor efficiently for any $n$ and precision $p$.
+Since ${2n \choose n} \approx 4^n$, it is best to use
+an exact algorithm when $n < Cp$ for some small constant $C > 2$.
+We use the binomial function provided by GMP for $n < 6p + 200$
+and otherwise use an asymptotic series for ${2n \choose n}$
+with error bounds given in~\cite{brent2016asymptotic}.
+
+We also need to quickly estimate the magnitude of binomial coefficients
+for error bounds of series truncations.
+We have the binary entropy estimate
+$$\log_2 {n \choose k} \le n G(k/n), \quad G(x) = -x \log_2(x) - (1-x) \log_2(1-x)$$
+and the equivalent form
+$${n \choose k} \le \left(\frac{n}{n-k}\right)^{n-k} \left(\frac{n}{k}\right)^k = \frac{n^n}{k^k (n-k)^{n-k}}.$$
+The function $G(x)$ can be evaluated cheaply with a precomputed
+lookup table (only a coarse estimate is needed).
 
 \subsection{Algorithm selection}
 
@@ -678,7 +715,7 @@ of error bounds for the integral itself.
 \section{Conclusion}
 
 A natural extension of this work would be to
-consider Gaussian quadrature nodes for different
+consider Gaussian quadrature rules for different
 weight functions.
 The techniques that work for Legendre polynomials should transfer to other
 classical orthogonal polynomials (Jacobi, Hermite, Laguerre, etc.)
@@ -691,7 +728,7 @@ option for high-precision numerical integration. Clenshaw-Curtis quadrature
 has received considerable attention in recent years
 as an alternative
 since it achieves a similar rate of convergence
-but only requires an FFT computation with $O(n \log n)$ arithmetic operations.
+but only requires an FFT computation with $O(n \log n)$ arithmetic operations~\cite{trefethen2008gauss}.
 Another alternative is the double exponential (tanh-sinh) method,
 which only requires $O(n)$ elementary function evaluations
 to generate~$n$ nodes and weights.
