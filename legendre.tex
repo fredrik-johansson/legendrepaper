@@ -1,4 +1,7 @@
 \documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
@@ -45,11 +48,13 @@ The definition implies that $P_n$ has $n$ roots all located in $(-1,1)$.
 Perhaps the most important application of Legendre polynomials
 is the Gauss-Legendre quadrature rule
 \begin{equation}
-\int_{-1}^{1} f(x) dx \approx \sum_{i=0}^{n-1} w_i f(x_i)
+\int_{-1}^{1} f(x) dx \approx \sum_{i=0}^{n-1} w_i f(x_i), \qquad
+w_i = \frac{2}{(1-x_i^2) [P'_n(x_i)]^2},
 \label{eq:glquad}
 \end{equation}
-where the nodes $x_i$ are the roots of $P_n$
-and the weights $w_i$ satisfy $w_i = 2 / ((1-x_i^2) [P'_n(x_i)]^2)$.
+where the \emph{nodes} $x_i$ are the roots of $P_n$.
+The quantity~$w_i$ is called the \emph{weight} associated
+to the node~$x_i$.
 
 Gauss-Legendre quadrature is one of the best general-purpose
 schemes for numerical integration. For analytic integrands,
@@ -63,38 +68,41 @@ the error can be bounded in terms of $\sup_{z \in D} |f(z)|$
 and the distance from the boundary of $D$ to $(-1,1)$~\cite{trefethen2008gauss}.
 The rapid convergence is especially crucial
 for some uses in computer algebra, number theory and experimental mathematics,
-where it is often necessary to perform computations
-to an accuracy of hundreds or occasionally even tens of thousands of digits~\cite{bailey2011high}.
+where it is often necessary to perform computations to an accuracy of
+hundreds of digits, and occasionally even tens of
+thousands~\cite{bailey2011high}.
 
 The Gauss-Legendre scheme has the drawback
 that the quadrature nodes are
-somewhat inconvenient to compute since $P_n$
-becomes highly oscillatory for large $n$ and hence presents difficulties
+somewhat inconvenient to compute.
+Indeed, $P_n$ becomes highly oscillatory for
+large $n$ and hence presents difficulties
 for naive root-finding and polynomial evaluation methods.
 The classical Golub-Welsch algorithm avoids accuracy problems
-by formulating the task as solving an eigenvalue problem,
-but this is too slow to be practical for large~$n$.
+by formulating the task of computing the nodes as an eigenvalue problem,
+but this approach is too slow to be practical for large~$n$.
+
 Work by several authors in the last decade has led to
 the development of asymptotic methods
 that permit computing any individual node and weight for arbitrarily large $n$
 in ``$O(1)$'' time, culminating in the 2014 paper by Bogaert \cite{bogaert2014iteration}.
 For a review of this progress, see~\cite{townsend2015race}.
-
 Of course, the ``$O(1)$'' bound assumes that a fixed
 level of precision is used. In the prevailing literature
 this generally means 53-bit IEEE 754 floating-point arithmetic.
 As mentioned earlier, certain applications require
 considering $p \sim n$ where~$p$ is the precision in bits,
 which potentially can be in the thousands.
-We also note that the available ``$O(1)$'' implementations rely in part
+In addition, the available ``$O(1)$'' implementations rely in part
 on heuristic error estimates without rigorously proved bounds.
 
 The literature on arbitrary precision or rigorous evaluation
 is comparatively limited.
 Petras \cite{petras1999computation} gave explicit
 bounds for the error $|x_k^{(i)} - x_k|$ when
-the Legendre polynomial roots $x_k$ are approximated using Newton iteration
-$$x^{(i+1)}_k = x^{(i)}_k - \frac{P_n(x^{(i)}_k)}{P'_n(x^{(i)}_k)}$$
+the roots $x_k$ of the Legendre polynomial $P_n$
+are approximated using Newton iteration
+\[ x^{(i+1)}_k = x^{(i)}_k - \frac{P_n(x^{(i)}_k)}{P'_n(x^{(i)}_k)} \]
 provided that the initial values $x^{(0)}_k$
 are computed by a certain asymptotic formula.
 However, Petras did not address the numerical evaluation of $P_n(x)$.
