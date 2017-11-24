@@ -182,7 +182,7 @@ In this work, we study fast and practical computation for variable $n$
 and precision $p$, with rigorous error bounds.
 Our main contribution is to give a complete evaluation strategy
 for Legendre polynomials on $[-1,1]$.
-In section~\ref{sec:serieseval},
+In section~\ref{sec:recurrence},
 we prove practical error bounds for the standard three-term recurrence,
 which can be implemented
 efficiently in fixed-point arithmetic.
@@ -214,45 +214,131 @@ Our code for computing Legendre polynomials and
 Gauss-Legendre nodes and weights is available
 in the Arb library \cite{Johansson2017arb}.
 
-\section{General remarks about Legendre polynomials}
+\section{Reminders on Legendre polynomials}
 
-We restrict our attention to
-evaluating $P_n(x)$ for real $|x| \le 1$,
-which is the most interesting part of the domain for applications
-(in addition, real $|x| > 1$ can be handled with naive numerical methods).
+As already mentioned, the Legendre polynomials~$P_n(x)$ are orthogonal
+polynomials with respect to the uniform measure on~$[-1,1]$.
+A more concrete definition is by the generating series
+\begin{equation} \label{eq:generating-series}
+  \sum_{n=0}^{\infty} P_n(x) t^n
+  = \frac{1}{\sqrt{1 - 2 x t + t^2}}.
+\end{equation}
+It is often convenient to introduce auxiliary
+variables~$\theta \in [0, \pi]$ and $y \in [0, 1]$ defined by
+$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$.
+Note that the roots of the polynomial $1 - 2 x z + z^2$ appearing
+in \eqref{eq:generating-series} are $e^{\pm i \theta} = x \pm i y$.
+
+Like other families of orthogonal polynomials, Legendre polynomials
+satisfy a three-term recurrence, in this case the relation
+\begin{equation} \label{eq:recurrence}
+  (n + 1) P_{n+1}(x) - (2n - 1) x P_n(x) + n P_{n-1}(x) = 0,
+\end{equation}
+also known as Bonnet's formula, and a mixed relation
+\begin{equation} \label{eq:mixed}
+  (x^2 - 1) P'_n(x) = n \bigl( x P_n(x) - P_{n-1}(x) \bigl)
+\end{equation}
+that expresses the derivative $P_n'$ in terms of two
+consecutive $P_n$.
+
+\section{General strategy}
+
+\label{sec:general}
+
+We work in the framework on midpoint-radius interval arithmetic,
+also called ball arithmetic.
+In general, given an integer~$n$ and a ball $x = [m \pm r]$,
+we want to evaluate $P_n(x)$ at~$x$,
+yielding an enclosure $y = [m' \pm r']$ such that $P_n(\xi) \in y$
+holds for all $\xi \in x$.
+
+We restrict our attention to real~$x \in [-1, 1]$,
+which is the most interesting part of the domain for applications.
 Since $P_n(-x) = (-1)^n P_n(x)$, we can further
 restrict to $0 \le x \le 1$.
-For rigorous evaluation of $P_n(z)$ with complex $z$
-and Legendre functions of non-integer order $n$,
-we note that generic methods for the hypergeometric ${}_2F_1$ function
-can be used if $n$ is not extremely large; see~\cite{johansson2016hypergeometric}.
-
 Some authors suggest working with $P_n(\cos(\theta))$ instead of $P_n(x)$
 directly to improve numerical stability for $x$ close to 1, but
 this is not necessary in arbitrary-precision arithmetic since
 a slight precision increase (of the order $O(\log n)$ bits)
 works as well.
 
-In general, we want to evaluate $P_n(x)$ at a real ball $x = [m \pm r]$,
-yielding an enclosure $y = [m' \pm r']$ such that $P_n(\xi) \in y$ holds for all
-$\xi \in x$. Since some of the evaluation algorithms would produce
-unsatisfactorily large enclosures when executed in ball arithmetic if $r > 0$,
-we evaluate $P_n(m)$ (with higher internal precision if necessary) and separately
-bound the propagated error $\varepsilon_{prop} = \max_{\xi \in x} |P_n(\xi) - P_n(m)|$
-using a first-order bound
-$$\varepsilon_{prop} \le r \max_{\xi \in x} |P'_n(\xi)|.$$
+Note that, for rigorous evaluation of $P_n(z)$ with complex $z$
+as well as Legendre functions of non-integer order $n$,
+generic methods for the hypergeometric ${}_2F_1$ function
+are applicable if $n$ is not extremely large; see~\cite{johansson2016hypergeometric}.
+In addition, real $|x| > 1$ can be handled with naive numerical methods.
+
+In view of the use of Newton's method to compute the roots,
+we also need to evaluate the derivative $P'_n(x)$,
+typically at the same time as $P_n(x)$ itself.
+A simple option is to deduce $P'_n(x)$ from
+$P_n(x)$ and $P_{n-1}(x)$ using \eqref{eq:mixed}.
+When $x$ is close to $1$, though, this formula involves a
+cancellation of about $\abs{\log_2(1 - x)}$ bits in the subtraction,
+followed by a division by $x^2 - 1$, so that a direct evaluation
+of $P'_n(x)$ may be preferable to reduce the working precision.
+
+Our evaluation algorithms rely on ball arithmetic internally to
+propagate the error bounds up to the final result.
+Since some methods would produce unsatisfactorily large enclosures
+when executed on input balls of radius $r > 0$, we evaluate $P_n(m)$
+(with higher internal precision if necessary) and use a first-order
+bound
+\[ \max_{\xi \in x} |P_n(\xi) - P_n(m)|
+   \le r \max_{\xi \in x} |P'_n(\xi)| \]
+to separately bound the propagated error.
 Similarly, we use a bound for $P''_n$ to compute a reasonably
 tight enclosure for $P'_n([m \pm r])$.
+Suitable bounds are given in the next lemma.
 
+\begin{lemma} \label{lemma:prop-bound}
+For $-1 \leq x \leq 1$, we have
+\begin{align}
+\label{eq:prop-bound}
+  |P_n'(x)| &\le \min\left(\frac{n(n+1)}{2},
+                          \frac{n}{\sqrt{1-x^2}}\right), \\
+\label{eq:prop-bound1}
+  |P_n''(x)| &\le \min\left(\frac{(n+2)(n+1)n(n-1)}{8},
+                           \frac{2|x||P_n'(x)| + n(n+1)}{1-x^2}\right).
+\end{align}
+\end{lemma}
+
+\begin{proof}
 %$$|p^{(d)}(x)| \le \left(\frac{2n}{\sqrt{1-x^2}}\right)^d$$
 %Markov: $$|p^{(d)}(x)| \le (n(n-1)\cdots(n-d+1))^2$$
 
 Using the Bernstein inequality (see \cite{borwein2012polynomials}, chapter 5)
 and the fact that $|P^{(d)}_n(x)| \le |P^{(d)}_n(1)|$ for $-1 \le x \le 1$,
-we have
-$$|P_n'(x)| \le \min\left(\frac{n(n+1)}{2}, \frac{n}{\sqrt{1-x^2}}\right), \quad -1 \le x \le 1$$
-and contiguous relations yield
-$$|P_n''(x)| \le \min\left(\frac{(n+2)(n+1)n(n-1)}{8}, \frac{2|x||P_n'(x)| + n(n+1)}{1-x^2}\right), \quad -1 \le x \le 1.$$
+we have~\eqref{eq:prop-bound}
+and contiguous relations yield~\eqref{eq:prop-bound1}.
+\end{proof}
+
+Thus, from now on, we assume that $x$~is a floating-point number with
+$0 \leq x \leq 1$.
+Our main algorithm for evaluating~$P_n$ at~$x$ combines the following
+methods:
+\begin{itemize}
+  \item the iterative computation of~$P_n(x)$
+  via~\eqref{eq:recurrence}, starting from $P_0(x)=1$ and
+  $P_1(x) = x$,
+  \item an asymptotic expansion of $P_n(x)$ as~$n \to \infty$,
+  \item the usual terminating expansion of $P_n$ in the monomial
+  basis,
+  \item a similar terminating expansion at~$1$.
+\end{itemize}
+Up to simple prefactors, all three expansions are hypergeometric
+series, i.e., sums of the form $\sum_k c_k \xi^k$ where $c_k/c_{k-1}$
+is a rational function of~$k$.
+
+The constraints and heuristics used to select between these algorithms
+are described in detail below.
+Roughly speaking,
+the recurrence is used for small index~$n$ and precision~$p$, when~$x$
+is not too close to~$1$,
+the asymptotic series when $n$~is large enough, again with $x$~not too
+close to~$1$,
+the expansion at~$0$ for intermediate precisions and $x$~far from~$1$,
+and the expansion at~$1$ when $x$ is close to~$1$.
 
 \section{Basecase recurrence}
 
