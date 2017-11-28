@@ -28,6 +28,9 @@
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \renewcommand{\baselinestretch}{1.00}
 
+\newcommand{\abs}[1]{\mathopen| #1 \mathclose|}
+\newcommand{\ddz}{\frac{d}{dz}}
+
 \begin{document}
 
 \title{Fast and rigorous arbitrary-precision evaluation of Legendre
@@ -220,8 +223,8 @@ As already mentioned, the Legendre polynomials~$P_n(x)$ are orthogonal
 polynomials with respect to the uniform measure on~$[-1,1]$.
 A more concrete definition is by the generating series
 \begin{equation} \label{eq:generating-series}
-  \sum_{n=0}^{\infty} P_n(x) t^n
-  = \frac{1}{\sqrt{1 - 2 x t + t^2}}.
+  \sum_{n=0}^{\infty} P_n(x) z^n
+  = \frac{1}{\sqrt{1 - 2 x z + z^2}}.
 \end{equation}
 It is often convenient to introduce auxiliary
 variables~$\theta \in [0, \pi]$ and $y \in [0, 1]$ defined by
@@ -319,8 +322,7 @@ Our main algorithm for evaluating~$P_n$ at~$x$ combines the following
 methods:
 \begin{itemize}
   \item the iterative computation of~$P_n(x)$
-  via~\eqref{eq:recurrence}, starting from $P_0(x)=1$ and
-  $P_1(x) = x$,
+  via~\eqref{eq:recurrence},
   \item an asymptotic expansion of $P_n(x)$ as~$n \to \infty$,
   \item the usual terminating expansion of $P_n$ in the monomial
   basis,
@@ -343,6 +345,178 @@ and the expansion at~$1$ when $x$ is close to~$1$.
 \section{Basecase recurrence}
 
 \label{sec:recurrence}
+
+For small $n$, a straightforward way to compute~$P_n(x)$ is to apply
+Bonnet's three-term recurrence \eqref{eq:recurrence},
+starting from $P_0(x)=1$ and $P_1(x) = x$.
+Computing~$P_n(x)$ by this method takes about $(M(t) + O(t))\, n$
+operations, where $t$ is the working precision and $M(t)$ denotes the
+cost of $t$-bit multiplication.
+It is thus attractive for small $n$ and $t$, especially when both
+$P_n(x)$ and $P'_n(x)$ are needed, since we can get $P_{n-1}(x)$ at no
+additional cost.
+
+In a direct implementation of this recurrence in ball arithmetic, the
+width of the enclosures would roughly double at every iteration,
+requiring to increase the internal working precision by $O(n)$ bits.
+We avoid this issue by performing a pen-and-paper round-off error
+analysis of the evaluation that yields a less pessimistic bound on the
+accumulated error.
+Additionally, the static error bound allows us to implement the
+recurrence in fixed-point arithmetic, avoiding the overhead of
+interval operations.
+
+Fix $x \in [-1, 1]$, and let $p_n = P_n(x)$.
+Bonnet's formula~\eqref{eq:recurrence} gives
+\begin{equation} \label{eq:rec-bis}
+  p_{n + 1} =
+    \frac{1}{n+1}
+    \bigl( (2n +1) x p_n - n p_{n-1} \bigr),
+  \qquad n \geq 0.
+\end{equation}
+We implement this recurrence as follows.
+Suppose $x = \hat x \, 2^{-t}$ with $\hat x \in \mathbb Z$.
+Let $\lceil u \rfloor$ denote the integer truncation of a real
+number~$u$ (any other rounding function would do).
+The integer sequence $(\hat p_n)$ defined by
+\begin{equation} \label{eq:rec-fxpt}
+  \hat{p}_0 = 2^t, \qquad
+  \hat{p}_1 = \hat x, \qquad
+  \hat{p}_{n + 1} =
+    \left\lceil \frac{1}{n + 1}  \bigl( (2 n + 1) \lceil \hat{x}
+      \hat{p}_n 2^{- t} \rfloor - n \hat{p}_{n - 1} \bigr)
+    \right\rfloor
+\end{equation}
+is easy to compute using only integer arithmetic, and
+$\hat p_n \, 2^{-t}$ is an approximation of $p_n$.
+
+To bound the difference $\abs{\hat p_n \, 2^{-t} - p_n}$, we analyze
+the effect on the result of a small perturbation in each iteration
+of \eqref{eq:rec-bis}.
+The bound is based on a classical linearity argument (compare, e.g.,
+\cite{Wimp1984}) combined with generating and majorant series
+techniques.
+
+\begin{proposition} \label{prop:rec-error}
+Suppose that a sequence $(\tilde p_n)_{n \geq -1}$ satisfies
+$\tilde p_0 = 1$ and
+\begin{equation} \label{eq:rec-pert}
+  \tilde{p}_{n + 1} =
+    \frac{1}{n+1}
+    \bigl( (2n +1) x \tilde{p}_n - n \tilde{p}_{n-1} \bigr)
+    + \varepsilon_n,
+  \qquad n \geq 0.
+\end{equation}
+for arbitrary real numbers $\varepsilon_n$
+with $\abs{\varepsilon_n} \leq \bar\varepsilon$ for all $n$.
+Then we have
+\[
+  \abs{\tilde p_n  - P_n(x)}
+  \leq \frac{(n+1)(n+2)}{4} \bar \varepsilon
+\]
+for all $n \geq 0$.
+\end{proposition}
+
+\begin{proof}
+Let
+$\delta_n = \tilde{p}_n - p_n$
+and
+$\eta_n = (n + 1) \varepsilon_n$.
+Subtracting \eqref{eq:rec-bis} from \eqref{eq:rec-pert} gives
+\begin{equation} \label{eq:rec-error}
+  (n + 1) \delta_{n + 1}
+  = (2 n + 1) x \delta_n - n \delta_{n - 1} + \eta_n,
+\end{equation}
+with $\delta_0 = 0$.
+Consider the formal generating series
+$\delta(z) = \sum_{n \geq 0} \delta_n z^n$
+and
+$\eta(z) = \sum_{n \geq 0} \eta_n z^n$.
+Noting that \eqref{eq:rec-error} holds for all $n \in \mathbb{Z}$ if
+the sequences $(\delta_n)$ and $(\eta_n)$ are extended by~$0$ for
+$n < 0$
+and using the relations
+\[
+  \sum_{n=-\infty}^{\infty} f_{n - 1} z^n
+  = z \sum_{n=-\infty}^{\infty} f_n z^n,
+  \qquad
+  \sum_{n=-\infty}^{\infty} n f_{n} z^n
+  = z \ddz \sum_{n=-\infty}^{\infty} f_n z^n,
+\]
+we see that \eqref{eq:rec-error} translates into
+\[ (1 - 2 xz + z^2) z \ddz \delta (z)
+   = z (x - z) \delta (z) + z \eta (z). \]
+The solution of this differential equation with $\delta (0) = 0$ reads
+\[ \delta(z) = p(z)  \int_0^z \eta(w) \, p(w) \, dw \]
+where, cf. \eqref{eq:generating-series},
+\[ p(z) = \sum_{n=0}^{\infty} p_n z^n
+        = \frac{1}{\sqrt{1 - 2 xz + z^2}}. \]
+This is an exact expression of the ``global'' error $\delta$ in terms
+of the ``local'' errors~$\varepsilon_n$.
+
+Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
+series $f(z)$.
+If $f$, $g$, $\hat f$, $\hat g$ are power series such that
+$\abs{[z^n] f} \leq [z^n] \hat f$ and
+$\abs{[z^n] g} \leq [z^n] \hat g$
+for all $n$, then also
+$\abs{[z^n] \int_0^z f} \leq [z^n] \int_0^z \hat f$ and
+$\abs{[z^n] (fg)} \leq [z^n] (\hat f \hat g)$.
+Since $\abs{p_n} = \abs{P_n(x)} \leq 1$
+and $\abs{\eta_n} \leq (n+1) \bar \varepsilon$,
+it follows that
+\[
+  \abs{\delta_n}
+  = \left| [z^n] \left( p(z)  \int_0^z \eta(w) \, p(w) \, dw \right) \right|
+  \leq [z^n] \left(
+    \frac{1}{1-z}
+    \int_0^z \frac{\bar \varepsilon}{(1 - w)^2} \frac{1}{1-w} dw \right)
+\]
+and therefore
+\[
+  \abs{\delta_n}
+  \leq [z^n] \left( \frac12 \frac{\bar \varepsilon}{(1-z)^3} \right)
+  = \frac{(n+1)(n+2)}{4} \, \bar \varepsilon. \qedhere
+\]
+\end{proof}
+
+\begin{corollary}
+Suppose that $x = \hat x \, 2^{-t}$ for some $t \geq 0$ and
+$\hat x \in \mathbb Z$.
+The sequence $(p_n)_{n \geq 0}$ defined by \eqref{eq:rec-fxpt}
+satisfies
+\[
+  \abs{ \hat p_n 2^{-t} - p_n }
+  \leq 0.75 \, (n+1) (n+1) \, 2^{-t},
+  \qquad
+  n \geq 0.
+\]
+\end{corollary}
+
+\begin{proof}
+We can write
+\[
+  \hat{p}_{n + 1} = \frac{1}{n + 1}  \bigl((2 n + 1)  (\hat{x} \,
+        \hat{p}_n \, 2^{- t} + \alpha_n) - n \, \hat{p}_{n - 1}\bigr)
+        + \beta_n
+\]
+for some $\alpha_n$, $\beta_n$ of absolute value at most one, and
+hence
+\[
+  \hat{p}_{n + 1} = \frac{1}{n + 1}  \bigl((2 n + 1) \, \hat{x} \,
+  \hat{p}_n \, 2^{- t} - n \, \hat{p}_{n - 1}\bigr) + \varepsilon_n,
+  \qquad
+  \varepsilon_n = \frac{2 n + 1}{n + 1} \alpha_n + \beta_n.
+\]
+where $\abs{\varepsilon_n} \leq 3$.
+Proposition \ref{prop:rec-error} applied to
+$\tilde p_n = \hat p_n \, 2^{-t}$
+then provides the desired bound.
+\end{proof}
+
+We currently do not use fast evaluation techniques for large~$n$ in
+combination with this recurrence, since the series expansions to be
+presented next work very well in this case.
 
 \section{Hypergeometric series evaluation}
 
@@ -440,7 +614,6 @@ as was done for elementary functions in~\cite{Johansson2015elementary}.
 The redundant parameter $\Omega$ is a small convenience in the pseudocode.
 Setting $\Omega = 1$ and adding the constant term separately
 avoids having to make a special case to avoid division by zero when $q(0) = 0$.
-
 
 \section{Series expansions}
 
