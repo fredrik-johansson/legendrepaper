@@ -571,7 +571,7 @@ The prefactors of both the series expansion at $x = 0$ and the asymptotic series
 contain the central binomial coefficient ${2n \choose n}$.
 We need to compute this factor efficiently for any $n$ and precision $p$.
 Since ${2n \choose n} \approx 4^n$, it is best to use
-an exact algorithm when $n < Cp$ for some small constant $C > 2$.
+an exact algorithm when $n < Cp$ for some small constant $C > 1/2$.
 We use the binomial function provided by GMP for $n < 6p + 200$
 and otherwise use an asymptotic series for ${2n \choose n}$
 with error bounds given in~\cite{brent2016asymptotic}.
