@@ -572,17 +572,17 @@ but paradoxically
 converges to $2 P_n(x)$ (for fixed $n$ when $K \to \infty$); see \cite{Olver1997} and \cite{Olver2010}.
 
 We can restate \eqref{eq:asymptotic} as a hypergeometric series
-by working with complex numbers. This eliminates the explicit trigonometric
-functions and permits using Algorithm~\ref{alg:hyprs} below to evaluate the series.
-Let $\omega = 1 - (x/y) i$, with $x = \cos(\theta)$ and $y =
-\sin(\theta)$ as usual.
-Then
+by working with complex numbers.
+Letting $\omega = 1 - (x/y) i$, with $x = \cos(\theta)$ and $y =
+\sin(\theta)$ as usual, we have
 \begin{equation}
 \label{eq:asymptoticcomplex}
-P_n(x) = (\pi y)^{-1/2} \operatorname{Re}\left[
+P_n(x) = \sqrt{\pi y} \, \operatorname{Re}\left[
 (1-i) (x+y i)^{n+1/2}
 \sum_{k=0}^{K-1} C_{n,k} \omega^k\right] + \xi_{n,K}(\theta).
 \end{equation}
+This eliminates the explicit trigonometric functions and permits using
+Algorithm~\ref{alg:hyprs} below to evaluate the series.
 
 \subsection{Expansion at zero}
 
@@ -596,8 +596,6 @@ P_{2d+1}(x) &= (-1)^d x \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k+1 
 \end{align*}
 where $A_{\pm 1}(d,0) = 1$ and
 $$\frac{A_{\sigma}(d,k)}{A_{\sigma}(d,k-1)} = \frac{(d-k+1) (2d+2k+\sigma)}{k (2k+\sigma)}.$$
-The right hand sides are in the form suited for
-evaluation with Algorithm~\ref{alg:hyprs}.
 
 If the series are truncated after the $k = K - 1$ term
 (for any $K < d + 1$), the error is bounded by the first
@@ -623,6 +621,10 @@ The coefficients $c_{n,k}$ are hypergeometric with
 ratio $c_{n,k}/c_{n,k-1} = (n-k+1)(n+k)/k^2$
 and initial value $c_{n,0} = 1$.
 
+If the series is truncated after the $k = K - 1$ term,
+the error is bounded by
+$${n \choose K}{n+K \choose K} |u|^K \frac{1}{1-\alpha}, \quad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}.$$
+
 For $u \ge 0$, the series does not suffer from cancellation.
 For $u < 0$, we can estimate the amount of
 cancellation from the magnitude of $P_n(|u|)$.
@@ -631,13 +633,9 @@ $$P_n(x) \approx \sum_{k=0}^{\infty} \frac{n^{2k}}{(k!)^2} u^k = I_0(2n\sqrt{u})
 We therefore need about $2n\sqrt{\max(0,-u)} / \log(2)$ bits
 of increased precision when evaluating the series.
 
-If the series is truncated after the $k = K - 1$ term,
-the error is bounded by
-$${n \choose K}{n+K \choose K} |u|^K \frac{1}{1-\alpha}, \quad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}.$$
-
 We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
 involves a division by $1-x^2$, it is useful to evaluate
-evaluate $(P_n, P'_n)$ directly when $x$ is close to 1.
+evaluate $P'_n$ directly when $x$ is close to 1.
 We have
 $$P'_n(x) = \sum_{k=0}^{n-1} c'_{n,k} u^k$$
 where $c'_{n,k}/c'_{n,k-1} = (n-k)(n+k+1)/(k(k+1))$ and $c'_{n,0} = n(n+1) / 2$.
