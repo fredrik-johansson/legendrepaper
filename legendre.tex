@@ -518,7 +518,130 @@ We currently do not use fast evaluation techniques for large~$n$ in
 combination with this recurrence, since the series expansions to be
 presented next work very well in this case.
 
-\section{Hypergeometric series evaluation}
+\section{Series expansions}
+
+\label{sec:series}
+
+Used instead of recurrence for large $n$ since fewer terms will
+be required and since fast evaluation of hypergeometric series
+is possible.
+(note: can also use fast method for the
+recurrence, but is it worthwhile?).
+
+Expansion of $P_n(x)$ at $x = 0$, at $x = 1$, and
+asymptotic expansion for large $n$.
+
+\subsection{Asymptotic series}
+
+For fixed $|x| < 1$ or equivalently $x = \cos(\theta)$ with $0 < \theta < \pi$,
+an asymptotic expansion for $P_n(x)$ as $n \to \infty$
+can be given as (\cite{Bogaert2012}, (3.4))
+\begin{equation}
+\label{eq:asymptotic}
+P_n(\cos(\theta)) = \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2}
+\sum_{k=0}^{K-1} C_{n,k} \frac{\cos(\alpha_{n,k}(\theta))}{\sin^k(\theta)}
++ \xi_{n,K}(\theta)
+\end{equation}
+where
+\begin{equation}
+C_{n,k} = \frac{[\Gamma(k+1/2)]^2 \Gamma(n+1)}{\pi 2^k \Gamma(n+k+3/2) \Gamma(k+1)},
+\end{equation}
+\begin{equation}
+\alpha_{n,k}(\theta) = (n+k+1/2) \theta - (k+1/2) \pi / 2,
+\end{equation}
+and the error term satisfies
+\begin{equation}
+|\xi_{n,K}(\theta)| < 2 \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2} \frac{C_{n,K}}{\sin^K(\theta)}.
+\end{equation}
+
+The coefficients $C_{n,k}$ are a hypergeometric sequence with
+$$\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.$$
+
+To evaluate the error bound, we can use the following inequality for $n, k \ge 1$:
+$$C_{n,k} \le \frac{1}{\pi n^{1/2}} \frac{k! n!}{2^k (n+k)!} \le \frac{1}{\pi n^{1/2}} \frac{k!}{(2n)^k}.$$
+
+The asymptotic expansion is in fact a convergent series
+when $2 \sin(\theta) > 1$, which allows evaluating $P_n(x)$ to unbounded
+accuracy for fixed $n$ when $\tfrac{1}{6}\pi < \theta < \tfrac{5}{6} \pi$.
+The particular form \eqref{eq:asymptotic}
+must be used for this purpose; there is a slightly different version of the expansion
+which is asymptotic to $P_n(x)$ (for fixed $K$ when $n \to \infty$)
+but paradoxically
+converges to $2 P_n(x)$ (for fixed $n$ when $K \to \infty$); see \cite{Olver1997} and \cite{Olver2010}.
+
+We can restate \eqref{eq:asymptotic} as a hypergeometric series
+by working with complex numbers. This eliminates the explicit trigonometric
+functions and permits using Algorithm~\ref{alg:hyprs} to evaluate the series.
+Let $x = \cos(\theta)$, $y = \sqrt{1-x^2} = \sin(\theta)$,
+and $\omega = 1 - (x/y) i$. Then
+\begin{equation}
+\label{eq:asymptoticcomplex}
+P_n(x) = (\pi y)^{-1/2} \operatorname{Re}\left[
+(1-i) (x+y i)^{n+1/2}
+\sum_{k=0}^{K-1} C_{n,k} \omega^k\right] + \xi_{n,K}(\theta).
+\end{equation}
+
+\subsection{Expansion at zero}
+
+If $n = 2d$ is even, then
+$$P_{2d}(x) = (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} = \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k.$$
+and if $n = 2d+1$ is odd, then
+\begin{align*}
+P_{2d+1}(x) &= (-1)^d x \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k+1 \choose n} x^{2k} \\
+&= \frac{(-1)^d (d+1)}{2^{2d+1}} {2d+2 \choose d+1} \,x\, \sum_{k=0}^d A_{+1}(d,k) (-x^2)^k
+\end{align*}
+where $A_{\pm 1}(d,0) = 1$ and
+$$\frac{A_{\sigma}(d,k)}{A_{\sigma}(d,k-1)} = \frac{(d-k+1) (2d+2k+\sigma)}{k (2k+\sigma)}.$$
+The right hand sides are in the form suited for
+evaluation with Algorithm~\ref{alg:hyprs}.
+
+If the series are truncated after the $k = K - 1$ term
+(for any $K < d + 1$), the error is bounded by the first
+omitted term times $(1-\alpha)^{-1}$
+where
+$$\alpha = |x|^2 \frac{(d-K+1)(2d+2K+\sigma)}{K (2K+\sigma)}.$$
+
+The expansion at zero involves no cancellation
+when applied to an imaginary argument.
+Solving the majorizing recurrence $f_n = 2 |z| f_{n-1} + f_{n-2}$,
+$f_0 = 1$, $f_1 = |z|$ shows that
+$|P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n$.
+Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
+is about $n \log_2(|x| + \sqrt{1 + |x|^2})$ bits
+(which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$).
+
+\subsection{Expansion at one}
+
+Expanding at $x = 1$ yields
+$$P_n(x) = \sum_{k=0}^n C(n,k) u^k, \quad C(n,k) = {n \choose k} {n+k \choose k}$$
+where $u = (x-1)/2$.
+The coefficients $C(n,k)$ are hypergeometric with
+ratio $C(n,k)/C(n,k-1) = (n-k+1)(n+k)/k^2$
+and initial value $C(n,0) = 1$.
+
+For $u \ge 0$, the series does not suffer from cancellation.
+For $u < 0$, we can estimate the amount of
+cancellation from the magnitude of $P_n(|u|)$.
+For not too large $x \ge 1$, a very good approximation is
+$$P_n(x) \approx \sum_{k=0}^{\infty} \frac{n^{2k}}{(k!)^2} u^k = I_0(2n\sqrt{u}) \approx e^{2n\sqrt{u}}.$$
+We therefore need about $2n\sqrt{\max(0,-u)} / \log(2)$ bits
+of increased precision when evaluating the series.
+
+If the series is truncated after the $k = K - 1$ term,
+the error is bounded by
+$${n \choose K}{n+K \choose K} |u|^K \frac{1}{1-\alpha}, \quad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}.$$
+
+We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
+involves a division by $1-x^2$, it is useful to evaluate
+evaluate $(P_n, P'_n)$ directly when $x$ is close to 1.
+We have
+$$P'_n(x) = \sum_{k=0}^{n-1} C'(n,k) u^k$$
+where $C'(n,k)/C'(n,k-1) = (n-k)(n+k+1)/(k(k+1))$ and $C'(n,0) = n(n+1) / 2$.
+Since $C'(n,k) \le n C(n,k+1)$, the truncation error is bounded by
+$$n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}$$
+with $u$ and $\alpha$ as above.
+
+\subsection{Hypergeometric series evaluation}
 
 \label{sec:serieseval}
 
@@ -615,129 +738,6 @@ The redundant parameter $\Omega$ is a small convenience in the pseudocode.
 Setting $\Omega = 1$ and adding the constant term separately
 avoids having to make a special case to avoid division by zero when $q(0) = 0$.
 
-\section{Series expansions}
-
-\label{sec:series}
-
-Used instead of recurrence for large $n$ since fewer terms will
-be required and since fast evaluation of hypergeometric series
-is possible.
-(note: can also use fast method for the
-recurrence, but is it worthwhile?).
-
-Expansion of $P_n(x)$ at $x = 0$, at $x = 1$, and
-asymptotic expansion for large $n$.
-
-\subsection{Asymptotic series}
-
-For fixed $|x| < 1$ or equivalently $x = \cos(\theta)$ with $0 < \theta < \pi$,
-an asymptotic expansion for $P_n(x)$ as $n \to \infty$
-can be given as (\cite{Bogaert2012}, (3.4))
-\begin{equation}
-\label{eq:asymptotic}
-P_n(\cos(\theta)) = \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2}
-\sum_{k=0}^{K-1} C_{n,k} \frac{\cos(\alpha_{n,k}(\theta))}{\sin^k(\theta)}
-+ \xi_{n,K}(\theta)
-\end{equation}
-where
-\begin{equation}
-C_{n,k} = \frac{[\Gamma(k+1/2)]^2 \Gamma(n+1)}{\pi 2^k \Gamma(n+k+3/2) \Gamma(k+1)},
-\end{equation}
-\begin{equation}
-\alpha_{n,k}(\theta) = (n+k+1/2) \theta - (k+1/2) \pi / 2,
-\end{equation}
-and the error term satisfies
-\begin{equation}
-|\xi_{n,K}(\theta)| < 2 \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2} \frac{C_{n,K}}{\sin^K(\theta)}.
-\end{equation}
-
-The coefficients $C_{n,k}$ are a hypergeometric sequence with
-$$\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.$$
-
-To evaluate the error bound, we can use the following inequality for $n, k \ge 1$:
-$$C_{n,k} \le \frac{1}{\pi n^{1/2}} \frac{k! n!}{2^k (n+k)!} \le \frac{1}{\pi n^{1/2}} \frac{k!}{(2n)^k}.$$
-
-The asymptotic expansion is in fact a convergent series
-when $2 \sin(\theta) > 1$, which allows evaluating $P_n(x)$ to unbounded
-accuracy for fixed $n$ when $\tfrac{1}{6}\pi < \theta < \tfrac{5}{6} \pi$.
-The particular form \eqref{eq:asymptotic}
-must be used for this purpose; there is a slightly different version of the expansion
-which is asymptotic to $P_n(x)$ (for fixed $K$ when $n \to \infty$)
-but paradoxically
-converges to $2 P_n(x)$ (for fixed $n$ when $K \to \infty$); see \cite{Olver1997} and \cite{Olver2010}.
-
-We can restate \eqref{eq:asymptotic} as a hypergeometric series
-by working with complex numbers. This eliminates the explicit trigonometric
-functions and permits using Algorithm~\ref{alg:hyprs} to evaluate the series.
-Let $x = \cos(\theta)$, $y = \sqrt{1-x^2} = \sin(\theta)$,
-and $\omega = 1 - (x/y) i$. Then
-\begin{equation}
-\label{eq:asymptoticcomplex}
-P_n(x) = (\pi y)^{-1/2} \operatorname{Re}\left[
-(1-i) (x+y i)^{n+1/2}
-\sum_{k=0}^{K-1} C_{n,k} \omega^k\right] + \xi_{n,K}(\theta).
-\end{equation}
-
-\subsection{Expansion at one}
-
-Expanding at $x = 1$ yields
-$$P_n(x) = \sum_{k=0}^n C(n,k) u^k, \quad C(n,k) = {n \choose k} {n+k \choose k}$$
-where $u = (x-1)/2$.
-The coefficients $C(n,k)$ are hypergeometric with
-ratio $C(n,k)/C(n,k-1) = (n-k+1)(n+k)/k^2$
-and initial value $C(n,0) = 1$.
-
-For $u \ge 0$, the series does not suffer from cancellation.
-For $u < 0$, we can estimate the amount of
-cancellation from the magnitude of $P_n(|u|)$.
-For not too large $x \ge 1$, a very good approximation is
-$$P_n(x) \approx \sum_{k=0}^{\infty} \frac{n^{2k}}{(k!)^2} u^k = I_0(2n\sqrt{u}) \approx e^{2n\sqrt{u}}.$$
-We therefore need about $2n\sqrt{\max(0,-u)} / \log(2)$ bits
-of increased precision when evaluating the series.
-
-If the series is truncated after the $k = K - 1$ term,
-the error is bounded by
-$${n \choose K}{n+K \choose K} |u|^K \frac{1}{1-\alpha}, \quad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}.$$
-
-We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
-involves a division by $1-x^2$, it is useful to evaluate
-evaluate $(P_n, P'_n)$ directly when $x$ is close to 1.
-We have
-$$P'_n(x) = \sum_{k=0}^{n-1} C'(n,k) u^k$$
-where $C'(n,k)/C'(n,k-1) = (n-k)(n+k+1)/(k(k+1))$ and $C'(n,0) = n(n+1) / 2$.
-Since $C'(n,k) \le n C(n,k+1)$, the truncation error is bounded by
-$$n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}$$
-with $u$ and $\alpha$ as above.
-
-\subsection{Expansion at zero}
-
-If $n = 2d$ is even, then
-$$P_{2d}(x) = (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} = \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k.$$
-and if $n = 2d+1$ is odd, then
-\begin{align*}
-P_{2d+1}(x) &= (-1)^d x \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k+1 \choose n} x^{2k} \\
-&= \frac{(-1)^d (d+1)}{2^{2d+1}} {2d+2 \choose d+1} \,x\, \sum_{k=0}^d A_{+1}(d,k) (-x^2)^k
-\end{align*}
-where $A_{\pm 1}(d,0) = 1$ and
-$$\frac{A_{\sigma}(d,k)}{A_{\sigma}(d,k-1)} = \frac{(d-k+1) (2d+2k+\sigma)}{k (2k+\sigma)}.$$
-The right hand sides are in the form suited for
-evaluation with Algorithm~\ref{alg:hyprs}.
-
-If the series are truncated after the $k = K - 1$ term
-(for any $K < d + 1$), the error is bounded by the first
-omitted term times $(1-\alpha)^{-1}$
-where
-$$\alpha = |x|^2 \frac{(d-K+1)(2d+2K+\sigma)}{K (2K+\sigma)}.$$
-
-The expansion at zero involves no cancellation
-when applied to an imaginary argument.
-Solving the majorizing recurrence $f_n = 2 |z| f_{n-1} + f_{n-2}$,
-$f_0 = 1$, $f_1 = |z|$ shows that
-$|P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n$.
-Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
-is about $n \log_2(|x| + \sqrt{1 + |x|^2})$ bits
-(which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$).
-
 \subsection{Binomial coefficients}
 
 The prefactors of both the series expansion at $x = 0$ and the asymptotic series
@@ -758,7 +758,7 @@ $${n \choose k} \le \left(\frac{n}{n-k}\right)^{n-k} \left(\frac{n}{k}\right)^k 
 The function $G(x)$ can be evaluated cheaply with a precomputed
 lookup table (only a coarse estimate is needed).
 
-\subsection{Algorithm selection}
+\section{Algorithm selection}
 
 \label{sec:selection}
 
