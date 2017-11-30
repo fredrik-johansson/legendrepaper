@@ -573,7 +573,7 @@ converges to $2 P_n(x)$ (for fixed $n$ when $K \to \infty$); see \cite{Olver1997
 
 We can restate \eqref{eq:asymptotic} as a hypergeometric series
 by working with complex numbers. This eliminates the explicit trigonometric
-functions and permits using Algorithm~\ref{alg:hyprs} to evaluate the series.
+functions and permits using Algorithm~\ref{alg:hyprs} below to evaluate the series.
 Let $\omega = 1 - (x/y) i$, with $x = \cos(\theta)$ and $y =
 \sin(\theta)$ as usual.
 Then
@@ -649,8 +649,8 @@ with $u$ and $\alpha$ as above.
 
 \label{sec:serieseval}
 
-We use rectangular splitting for fast evaluation of
-hypergeometric series with
+We use rectangular splitting~\cite{Smith1989,Johansson2014rectangular}
+for fast evaluation of hypergeometric series with
 rational parameters where the argument $x$ is a high-precision number.
 This reduces evaluating a $K$-term series to
 $K$ cheap scalar operations (additions and multiplications or divisions
@@ -700,15 +700,24 @@ Binary splitting: low precision input, high internal precision
   \end{algorithmic}
 \end{algorithm}
 
+The process is formalized in Algorithm \ref{alg:hyprs}.
 This algorithm is a generalization of the
 method for evaluating Taylor series of elementary
 functions given in~\cite{Johansson2015elementary},
-which combines rectangular splitting~\cite{Smith1989}
+which combines rectangular splitting
 with partially unrolling the recurrence to reduce the number of scalar divisions
 (which in practice are more costly than scalar multiplications).
 The terms are computed in the reverse direction to allow
 using Horner's rule for outer
 multiplication.
+
+Our implementation uses ball arithmetic for $x$ and $s$
+so that no error analysis is needed, and we use a bignum type for $c$ (so
+no overflow can occur regardless of $u$);
+for low precision a faster implementation
+would be possible using fixed-point arithmetic with tight
+control of the word-level operations
+as was done for elementary functions in~\cite{Johansson2015elementary}.
 
 The algorithm contains two tuning parameters.
 The splitting parameter $m$ controls the
@@ -716,7 +725,8 @@ number $m$ of multiplications for powers versus the number $K / m$ of
 multiplications for Horner's rule.
 The choice $m \approx \sqrt K$ is optimal,
 but when evaluating two series for the same~$x$
-(for example, to compute both $f(x)$ and $f'(x)$), the table of powers can be reused,
+(in our case, to compute both $P_n(x)$ and $P'_n(x)$),
+the table of powers can be reused,
 and then $m \approx \sqrt{2K}$ minimizes the total cost.
 
 The unrolling parameter $u$ controls the number of coefficients
@@ -728,19 +738,12 @@ and $\prod_{j=a}^b q(j)$ fit in 1 or 2 machine words.
 The example value $u = 4$ is a reasonable
 default, but as an optimization, one might vary $u$
 for each iteration of the main loop
-ensure that $c$ always fits a specific number of words.
-
-Our implementation uses ball arithmetic for $x$ and $s$
-so that no error analysis is needed, and we use a bignum type for $c$ (so
-no overflow can occur regardless of $u$);
-for low precision a faster implementation
-would be possible using fixed-point arithmetic with tight
-control of the word-level operations
-as was done for elementary functions in~\cite{Johansson2015elementary}.
+to ensure that $c$ always fits in a specific number of words.
 
 The redundant parameter $\Omega$ is a small convenience in the pseudocode.
 Setting $\Omega = 1$ and adding the constant term separately
-avoids having to make a special case to avoid division by zero when $q(0) = 0$.
+avoids having to make a special case to prevent division by zero
+when $q(0) = 0$.
 
 \subsection{Binomial coefficients}
 
