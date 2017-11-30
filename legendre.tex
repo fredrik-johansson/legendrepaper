@@ -185,22 +185,20 @@ In this work, we study fast and practical computation for variable $n$
 and precision $p$, with rigorous error bounds.
 Our main contribution is to give a complete evaluation strategy
 for Legendre polynomials on $[-1,1]$.
-In section~\ref{sec:recurrence},
+In Section~\ref{sec:recurrence},
 we prove practical error bounds for the standard three-term recurrence,
-which can be implemented
-efficiently in fixed-point arithmetic.
+which can be efficiently implemented
+in fixed-point arithmetic.
 This method is ideal
 for moderate $n$ and~$p$, say up to a few hundred.
-
 For larger $n$ and/or $p$, we use a fast method for evaluation
-of hypergeometric series as discussed in section~\ref{sec:serieseval}.
-Section~\ref{sec:series} discusses the
-hypergeometric series expansions that are preferable
-for different inputs and precision (including an asymptotic expansion for large $n$),
-and we propose a strategy to select the best formula to evaluate $P_n(x)$
-for any combination of $n, p, x$.
-We use arbitrary-precision ball arithmetic to propagate error bounds
-automatically.
+of hypergeometric series.
+Section~\ref{sec:series} discusses the hypergeometric series
+expansions that are preferable for different inputs and precision
+(including an asymptotic expansion for large $n$),
+and their efficient evaluation.
+In Section \ref{sec:selection}, we propose a strategy to select the
+best formula for any combination of $n, p, x$.
 
 With a complete algorithm for evaluating Legendre polynomials
 in ball arithmetic,
