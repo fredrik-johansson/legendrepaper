@@ -520,14 +520,16 @@ presented next work very well in this case.
 
 \label{sec:series}
 
-Used instead of recurrence for large $n$ since fewer terms will
-be required and since fast evaluation of hypergeometric series
-is possible.
-(note: can also use fast method for the
-recurrence, but is it worthwhile?).
-
-Expansion of $P_n(x)$ at $x = 0$, at $x = 1$, and
-asymptotic expansion for large $n$.
+For moderately large $n$, we use series expansions of $P_n(x)$ with
+respect to either $n$ or $x$ rather than the algorithm from the
+previous section.
+The coefficients of the series are also computed by recurrence,
+but fewer than $n$ terms will typically be required.
+Additionally, the expansions are of a form suitable for fast
+evaluation by rectangular splitting.
+Let us first review the various series expansions that we are using
+(an asymptotic expansion as $n \to \infty$, series expansions at $x=0$
+and $x=1$), and then discuss their efficient evaluation.
 
 \subsection{Asymptotic series}
 
