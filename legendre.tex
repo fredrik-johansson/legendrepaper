@@ -617,11 +617,11 @@ is about $n \log_2(|x| + \sqrt{1 + |x|^2})$ bits
 \subsection{Expansion at one}
 
 Expanding at $x = 1$ yields
-$$P_n(x) = \sum_{k=0}^n C(n,k) u^k, \quad C(n,k) = {n \choose k} {n+k \choose k}$$
+$$P_n(x) = \sum_{k=0}^n c_{n,k} u^k, \quad c_{n,k} = {n \choose k} {n+k \choose k}$$
 where $u = (x-1)/2$.
-The coefficients $C(n,k)$ are hypergeometric with
-ratio $C(n,k)/C(n,k-1) = (n-k+1)(n+k)/k^2$
-and initial value $C(n,0) = 1$.
+The coefficients $c_{n,k}$ are hypergeometric with
+ratio $c_{n,k}/c_{n,k-1} = (n-k+1)(n+k)/k^2$
+and initial value $c_{n,0} = 1$.
 
 For $u \ge 0$, the series does not suffer from cancellation.
 For $u < 0$, we can estimate the amount of
@@ -639,9 +639,9 @@ We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
 involves a division by $1-x^2$, it is useful to evaluate
 evaluate $(P_n, P'_n)$ directly when $x$ is close to 1.
 We have
-$$P'_n(x) = \sum_{k=0}^{n-1} C'(n,k) u^k$$
-where $C'(n,k)/C'(n,k-1) = (n-k)(n+k+1)/(k(k+1))$ and $C'(n,0) = n(n+1) / 2$.
-Since $C'(n,k) \le n C(n,k+1)$, the truncation error is bounded by
+$$P'_n(x) = \sum_{k=0}^{n-1} c'_{n,k} u^k$$
+where $c'_{n,k}/c'_{n,k-1} = (n-k)(n+k+1)/(k(k+1))$ and $c'_{n,0} = n(n+1) / 2$.
+Since $c'_{n,k} \le n c_{n,k+1}$, the truncation error is bounded by
 $$n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}$$
 with $u$ and $\alpha$ as above.
 
