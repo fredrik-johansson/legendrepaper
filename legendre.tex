@@ -637,8 +637,12 @@ We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
 involves a division by $1-x^2$, it is useful to evaluate
 evaluate $P'_n$ directly when $x$ is close to 1.
 We have
-$$P'_n(x) = \sum_{k=0}^{n-1} c'_{n,k} u^k$$
-where $c'_{n,k}/c'_{n,k-1} = (n-k)(n+k+1)/(k(k+1))$ and $c'_{n,0} = n(n+1) / 2$.
+$P'_n(x) = \sum_{k=0}^{n-1} c'_{n,k} u^k$
+where $c'_{n,k} = (k+1) c_{n,k+1} / 2$ satisfies
+\[
+  c'_{n,0} = \frac{n(n+1)}{2}, \qquad
+  \frac{c'_{n,k}}{c'_{n,k-1}} = \frac{(n-k)(n+k+1)}{k(k+1)}.
+\]
 Since $c'_{n,k} \le n c_{n,k+1}$, the truncation error is bounded by
 $$n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}$$
 with $u$ and $\alpha$ as above.
