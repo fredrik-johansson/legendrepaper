@@ -217,6 +217,8 @@ in the Arb library \cite{Johansson2017arb}.
 
 \section{Reminders on Legendre polynomials}
 
+\label{sec:reminders}
+
 As already mentioned, the Legendre polynomials~$P_n(x)$ are orthogonal
 polynomials with respect to the uniform measure on~$[-1,1]$.
 A more concrete definition is by the generating series
@@ -572,8 +574,9 @@ converges to $2 P_n(x)$ (for fixed $n$ when $K \to \infty$); see \cite{Olver1997
 We can restate \eqref{eq:asymptotic} as a hypergeometric series
 by working with complex numbers. This eliminates the explicit trigonometric
 functions and permits using Algorithm~\ref{alg:hyprs} to evaluate the series.
-Let $x = \cos(\theta)$, $y = \sqrt{1-x^2} = \sin(\theta)$,
-and $\omega = 1 - (x/y) i$. Then
+Let $\omega = 1 - (x/y) i$, with $x = \cos(\theta)$ and $y =
+\sin(\theta)$ as usual.
+Then
 \begin{equation}
 \label{eq:asymptoticcomplex}
 P_n(x) = (\pi y)^{-1/2} \operatorname{Re}\left[
@@ -583,9 +586,10 @@ P_n(x) = (\pi y)^{-1/2} \operatorname{Re}\left[
 
 \subsection{Expansion at zero}
 
-If $n = 2d$ is even, then
-$$P_{2d}(x) = (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} = \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k.$$
-and if $n = 2d+1$ is odd, then
+If $n = 2d$ is even, the expansion of $P_n(x)$ on the monomial basis
+reads
+$$P_{2d}(x) = (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} = \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k,$$
+and if $n = 2d+1$ is odd, we have
 \begin{align*}
 P_{2d+1}(x) &= (-1)^d x \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k+1 \choose n} x^{2k} \\
 &= \frac{(-1)^d (d+1)}{2^{2d+1}} {2d+2 \choose d+1} \,x\, \sum_{k=0}^d A_{+1}(d,k) (-x^2)^k
@@ -603,9 +607,9 @@ $$\alpha = |x|^2 \frac{(d-K+1)(2d+2K+\sigma)}{K (2K+\sigma)}.$$
 
 The expansion at zero involves no cancellation
 when applied to an imaginary argument.
-Solving the majorizing recurrence $f_n = 2 |z| f_{n-1} + f_{n-2}$,
+Solving the majorizing recurrence $f_n = 2 |z| f_{n-1} + f_{n-2}$ with
 $f_0 = 1$, $f_1 = |z|$ shows that
-$|P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n$.
+\[ |P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n. \]
 Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
 is about $n \log_2(|x| + \sqrt{1 + |x|^2})$ bits
 (which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$).
@@ -832,7 +836,7 @@ The crossover point between the
 three-term recurrence and series expansions usually occurs
 around $n \approx 10^2 - 10^3$ (it can be as low as $n \approx 10$
 if $p$ is much larger).
-For modest $n$,
+For modest $n$,
 the three-term recurrence is much faster
 than the hypergeometric series (typically by a factor 3-4)
 due to working with negligible extra precision
