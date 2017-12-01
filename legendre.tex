@@ -1,7 +1,8 @@
 \documentclass[11pt,a4paper]{article}
-\usepackage[T1]{fontenc}
+
+\usepackage[T1,T2A]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{lmodern}
+%\usepackage{lmodern}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
@@ -11,6 +12,8 @@
 \usepackage{algpseudocode}
 \usepackage[margin=1.1in]{geometry}
 \usepackage{hyperref}
+
+\DeclareUnicodeCharacter{00A0}{ }
 
 \newtheorem{example}{Example}
 \newtheorem{theorem}{Theorem}
@@ -40,19 +43,13 @@ polynomials and Gauss-Legendre quadrature nodes}
 \maketitle
 
 \begin{abstract}
-Even in cases where Gauss-Legendre quadrature achieves a nearly
-optimal rate of convergence, more slowly converging quadrature rules
-have often been favored in high-precision computations due to the cost
-of generating the quadrature nodes.
-
-In this work, we describe an efficient strategy for rigorous
+We describe an efficient strategy for rigorous
 arbitrary-precision evaluation of Legendre polynomials on the unit
 interval and its application in the generation of Gauss-Legendre
 quadrature rules.
 Our focus is on making the evaluation practical for a wide range of
 realistic parameters, corresponding to the requirements of numerical
 integration to an accuracy of about $100$ to $100\,000$ bits.
-
 Our evaluation algorithm combines the summation by rectangular
 splitting of several types of expansions in terms of hypergeometric
 series with a fixed-point implementation of Bonnet's three-term
@@ -60,7 +57,6 @@ recurrence relation.
 We then compute rigorous enclosures of the Gauss-Legendre nodes and
 weights using the interval Newton method.
 We provide rigorous error bounds for all steps of the algorithm.
-
 The practicality of the approach is validated by an implementation in
 the Arb library.
 Our implementation achieves an order-of-magnitude speedup over
@@ -74,6 +70,29 @@ even at very high precision.
 The Legendre polynomials $P_n(x)$ are the sequence
 of orthogonal polynomials with respect to the unit weight
 on the interval $(-1,1)$, normalized so that $P_n(1) = 1$.
+A more concrete definition is by the generating series
+\begin{equation} \label{eq:generating-series}
+  \sum_{n=0}^{\infty} P_n(x) z^n
+  = \frac{1}{\sqrt{1 - 2 x z + z^2}}.
+\end{equation}
+It is often convenient to introduce auxiliary
+variables~$\theta \in [0, \pi]$ and $y \in [0, 1]$ defined by
+$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$,
+where one might note that the roots of the polynomial $1 - 2 x z + z^2$ appearing
+in \eqref{eq:generating-series} are $e^{\pm i \theta} = x \pm i y$.
+
+Like other families of orthogonal polynomials, Legendre polynomials
+satisfy a three-term recurrence, in this case the relation
+\begin{equation} \label{eq:recurrence}
+  (n + 1) P_{n+1}(x) - (2n - 1) x P_n(x) + n P_{n-1}(x) = 0,
+\end{equation}
+also known as Bonnet's formula, and a mixed relation
+\begin{equation} \label{eq:mixed}
+  (x^2 - 1) P'_n(x) = n \bigl( x P_n(x) - P_{n-1}(x) \bigl)
+\end{equation}
+that expresses the derivative $P_n'$ in terms of two
+consecutive $P_n$.
+
 The definition implies that $P_n$ has $n$ roots all located in $(-1,1)$.
 Perhaps the most important application of Legendre polynomials
 is the Gauss-Legendre quadrature rule
@@ -84,23 +103,32 @@ w_i = \frac{2}{(1-x_i^2) [P'_n(x_i)]^2},
 \end{equation}
 where the \emph{nodes} $x_i$ are the roots of $P_n$.
 The quantity~$w_i$ is called the \emph{weight} associated
-to the node~$x_i$.
+with the node~$x_i$.
 
-Gauss-Legendre quadrature is one of the best general-purpose
-schemes for numerical integration. For analytic integrands,
-$n = O(p)$ evaluation points suffice for an accuracy of $p$ bits,
-and the rule is exact for all polynomials of degree at most $2n-1$.
-Explicit error bounds for the approximation
-\eqref{eq:glquad} can be given in terms of
-$\sup_{x \in (-1,1)} |f^{(2n)}(x)|$. Alternatively,
-if $f$ is complex analytic on a domain $D$ containing $(-1,1)$,
-the error can be bounded in terms of $\sup_{z \in D} |f(z)|$
-and the distance from the boundary of $D$ to $(-1,1)$~\cite{trefethen2008gauss}.
-The rapid convergence is especially crucial
-for some uses in computer algebra, number theory and experimental mathematics,
-where it is often necessary to perform computations to an accuracy of
+For some applications in computer algebra, number theory,
+mathematical physics, and experimental mathematics,
+it is necessary to compute integrals to an accuracy of
 hundreds of digits, and occasionally even tens of
-thousands~\cite{bailey2011high}.
+thousands of digits~\cite{bailey2011high}.
+The Gauss-Legendre formula is especially well suited for
+integration of smooth functions without endpoint singularities, where it
+achieves an accuracy of $p$ bits with $n = O(p)$ evaluation points.
+
+Indeed, it is well known that~\eqref{eq:glquad} is nearly optimal among
+all quadrature rules for integrands that are
+well-approximated by polynomials, in particular for
+analytic $f$ without singularities close to
+the path of integration~\cite{kowalski1985gauss,trefethen2008gauss}.
+As a special case, the $n$-point rule~\eqref{eq:glquad} is exact
+when $f$ is any polynomial of degree at most $2n-1$.
+In general, the error in~\eqref{eq:glquad} can be bounded in terms of
+$\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or if $f$ is analytic on a domain $D$
+containing $(-1,1)$, in terms of $\sup_{z \in D} |f(z)|$
+and the distance from the boundary of $D$ to $(-1,1)$.
+Even when the conditions are not ideal for using \eqref{eq:glquad} directly,
+rapid convergence is often possible
+by combining~\eqref{eq:glquad}
+with adaptive subdivision of the integration path~\cite{petras2002self}.
 
 The Gauss-Legendre scheme has the drawback
 that the quadrature nodes are
@@ -109,14 +137,13 @@ Indeed, $P_n$ becomes highly oscillatory for
 large $n$ and hence presents difficulties
 for naive root-finding and polynomial evaluation methods.
 The classical Golub-Welsch algorithm avoids accuracy problems
-by formulating the task of computing the nodes as an eigenvalue problem,
+by formulating the task of computing the nodes as an eigenvalue problem~\cite{golub1969calculation},
 but this approach is too slow to be practical for large~$n$.
 
-Work by several authors in the last decade has led to
-the development of asymptotic methods
+Work by several authors in the last decade has led to asymptotic methods
 that permit computing any individual node and weight for arbitrarily large $n$
 in ``$O(1)$'' time, culminating in the 2014 paper by Bogaert \cite{bogaert2014iteration}.
-For a review of this progress, see~\cite{townsend2015race}.
+For a review of this progress, see Townsend~\cite{townsend2015race}.
 Of course, the ``$O(1)$'' bound assumes that a fixed
 level of precision is used. In the prevailing literature
 this generally means 53-bit IEEE 754 floating-point arithmetic.
@@ -132,7 +159,10 @@ Petras \cite{petras1999computation} gave explicit
 bounds for the error $|x_k^{(i)} - x_k|$ when
 the roots $x_k$ of the Legendre polynomial $P_n$
 are approximated using Newton iteration
-\[ x^{(i+1)}_k = x^{(i)}_k - \frac{P_n(x^{(i)}_k)}{P'_n(x^{(i)}_k)} \]
+\begin{equation}
+\label{eq:newton}
+x^{(i+1)}_k = x^{(i)}_k - \frac{P_n(x^{(i)}_k)}{P'_n(x^{(i)}_k)}
+\end{equation}
 provided that the initial values $x^{(0)}_k$
 are computed by a certain asymptotic formula.
 However, Petras did not address the numerical evaluation of $P_n(x)$.
@@ -142,18 +172,17 @@ using generic polynomial root isolation methods together with interval Newton it
 for root refinement,
 but did not study fast methods for large $n$.
 
-[todo: use consistent notation for the roots]
-
 If we assume that the precision $p$ varies,
-then it is easy to see that any node and weight
-can be computed to $p$ bits in $\widetilde{O}(n p)$ time
-since Newton iteration from appropriate
-initial values converges in $O(\log p)$ steps.
-In other words the
+then it is clear that any node and weight
+can be computed to $p$-bit accuracy in $\widetilde{O}(n p)$ time
+by performing $O(\log p)$ Newton iterations \eqref{eq:newton}
+from an appropriate initial value.
+As a consequence, the
 full set of degree-$n$ quadrature nodes of weights
 can be computed in $\widetilde{O}(n^2 p)$ time.
 For numerical integration of analytic functions
-where we typically have $p \sim n$, a better (indeed, optimal) estimate is possible:
+where we typically have $p \sim n$, a better (indeed, optimal) estimate
+than the trivial $\widetilde{O}(n^3)$ bound is possible:
 
 \begin{theorem}
 \label{thm:complexity}
@@ -163,7 +192,7 @@ $p$-bit accuracy in $\widetilde{O}(n^2)$ (equivalently, $\widetilde{O}(p^2)$) bi
 
 \begin{proof}
 (Sketch.)
-Using~\cite{petras1999computation},
+Using the formulas in~\cite{petras1999computation},
 we can compute good initial values for Newton iteration
 in $\widetilde{O}(n)$ bit operations.
 The Newton iteration can be performed for all roots
@@ -172,26 +201,39 @@ $\widetilde{O}(n p)$ bit operations.
 Fast multipoint evaluation is numerically unstable and
 generically loses $O(n)$ bits of accuracy, but we can compensate for
 this loss by using $O(n)$ guard bits
-(since $p \sim n$ by assumption, this does not change the asymptotic complexity estimate).
+(since $p \sim n$ by assumption, this does not change the asymptotic complexity estimate)~\cite{kobel2013fast}.
 \end{proof}
 
-[todo: need some citations here; also generic root isolation results (Pan et al.).]
-
-[Alternatively, $\widetilde{O}(n^{3/2} p)$ using single evaluations (but not practical).]
-
-[Could write something about the bit-burst algorithm (why it does/doesn't help).]
+Completing the details
+of the proof is a technical exercise.
+Unfortunately, despite being elegant in theory,
+the algorithm behind Theorem~\ref{thm:complexity} has high overhead
+in practice. Working with expanded polynomials and
+processing all roots simultaneously also results in high memory usage and
+makes parallelization difficult.
+We can achieve a slightly worse but still subcubic
+complexity of $\widetilde{O}(n^{5/2})$
+by employing
+fast multipoint evaluation in a completely different way
+to compute $P_n$ values in isolation,
+but unfortunately that algorithm
+also has high overhead~\cite{Johansson2014rectangular}.
 
 In this work, we study fast and practical computation for variable $n$
-and precision $p$, with rigorous error bounds.
+and precision $p$ with rigorous error bounds.
 Our main contribution is to give a complete evaluation strategy
-for Legendre polynomials on $[-1,1]$.
+for Legendre polynomials on $[-1,1]$ in ball arithmetic~\cite{vdH:ball,Johansson2017arb}.
+Computing the Legendre polynomial roots, then,
+is a relatively simple application of the results
+in~\cite{petras1999computation} together with the interval Newton method.
+
+Our algorithm switches between several methods.
 In Section~\ref{sec:recurrence},
 we prove practical error bounds for the standard three-term recurrence,
 which can be efficiently implemented
 in fixed-point arithmetic.
-This method is ideal
-for moderate $n$ and~$p$, say up to a few hundred.
-For larger $n$ and/or $p$, we use a fast method for evaluation
+This method is ideal for $n$ and~$p$ up to a few hundred.
+For larger $n$ or $p$, we use a fast method for evaluation
 of hypergeometric series.
 Section~\ref{sec:series} discusses the hypergeometric series
 expansions that are preferable for different inputs and precision
@@ -200,49 +242,23 @@ and their efficient evaluation.
 In Section \ref{sec:selection}, we propose a strategy to select the
 best formula for any combination of $n, p, x$.
 
-With a complete algorithm for evaluating Legendre polynomials
-in ball arithmetic,
-computing Gauss-Legendre quadrature nodes and weights
-is a relatively simple application of root-finding with the
-interval Newton method.
 Section~\ref{sec:bench} presents benchmark results
-and compares the practical performance
-of our algorithm for isolated evaluations
-to the asymptotically fast simultaneous evaluation
-algorithm in Theorem~\ref{thm:complexity}.
+that compare the performance
+of our algorithm
+to some previous implementations
+as well as the asymptotically fast algorithm in Theorem~\ref{thm:complexity}.
+
+For computing Gauss-Legendre nodes and weights with $n \sim p$,
+our algorithm has an asymptotic complexity of $\widetilde{O}(n^3)$ like
+classical methods. However, our algorithm has much lower overhead,
+and for parameters $p, n < 10^5$ which are most relevant to applications,
+the observed running time is effectively subcubic.
+Furthermore, if $p = O(1)$, the complexity reduces to $\widetilde{O}(n)$
+as in the machine-precision implementations by Bogaert and others.
 
 Our code for computing Legendre polynomials and
-Gauss-Legendre nodes and weights is available
-in the Arb library \cite{Johansson2017arb}.
-
-\section{Reminders on Legendre polynomials}
-
-\label{sec:reminders}
-
-As already mentioned, the Legendre polynomials~$P_n(x)$ are orthogonal
-polynomials with respect to the uniform measure on~$[-1,1]$.
-A more concrete definition is by the generating series
-\begin{equation} \label{eq:generating-series}
-  \sum_{n=0}^{\infty} P_n(x) z^n
-  = \frac{1}{\sqrt{1 - 2 x z + z^2}}.
-\end{equation}
-It is often convenient to introduce auxiliary
-variables~$\theta \in [0, \pi]$ and $y \in [0, 1]$ defined by
-$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$.
-Note that the roots of the polynomial $1 - 2 x z + z^2$ appearing
-in \eqref{eq:generating-series} are $e^{\pm i \theta} = x \pm i y$.
-
-Like other families of orthogonal polynomials, Legendre polynomials
-satisfy a three-term recurrence, in this case the relation
-\begin{equation} \label{eq:recurrence}
-  (n + 1) P_{n+1}(x) - (2n - 1) x P_n(x) + n P_{n-1}(x) = 0,
-\end{equation}
-also known as Bonnet's formula, and a mixed relation
-\begin{equation} \label{eq:mixed}
-  (x^2 - 1) P'_n(x) = n \bigl( x P_n(x) - P_{n-1}(x) \bigl)
-\end{equation}
-that expresses the derivative $P_n'$ in terms of two
-consecutive $P_n$.
+Gauss-Legendre nodes and weights is freely available as part of
+the Arb library \cite{Johansson2017arb}.
 
 \section{General strategy}
 
@@ -1015,16 +1031,7 @@ In the present work, we abstain from a more detailed discussion of
 adaptive integration strategies and the computation
 of error bounds for the integral itself.
 
-\section{Conclusion}
-
-A natural extension of this work would be to
-consider Gaussian quadrature rules for different
-weight functions.
-The techniques that work for Legendre polynomials should transfer to other
-classical orthogonal polynomials (Jacobi, Hermite, Laguerre, etc.)
-which likewise are hypergeometric and satisfy three-term recurrence relations.
-The main obstacle might be
-to obtain large-$n$ asymptotic expansions with suitable error bounds.
+\section{Viability of Gauss-Legendre quadrature for high-precision integration}
 
 Gaussian quadrature is not the only viable
 option for high-precision numerical integration. Clenshaw-Curtis quadrature
@@ -1059,7 +1066,8 @@ dependence on $n$ for fixed precision $p$, and Theorem~\ref{thm:complexity}
 avoids the implied cubic dependence on $n$ when $n \sim p$.
 In fact, Theorem~\ref{thm:complexity} implies that
 Gauss-Legendre, Clenshaw-Curtis and double exponential
-quadrature actually have the same quasi-optimal asymptotic bit complexity.
+quadrature actually have the same quasi-optimal asymptotic bit complexity,
+up to logarithmic factors.
 
 Although our experiments show that the algorithm in Theorem~\ref{thm:complexity}
 hardly is practical, our main algorithm does achieve a
@@ -1070,6 +1078,17 @@ on a single core (with trivial parallelization since all roots
 are computed independently). This is not prohibitively
 expensive compared to the repeated evaluation
 of typical analytic integrands.
+
+\section{Conclusion}
+
+A natural extension of this work would be to
+consider Gaussian quadrature rules for different
+weight functions.
+The techniques that work for Legendre polynomials should transfer to other
+classical orthogonal polynomials (Jacobi, Hermite, Laguerre, etc.)
+which likewise are hypergeometric and satisfy three-term recurrence relations.
+The main obstacle might be
+to obtain large-$n$ asymptotic expansions with suitable error bounds.
 
 \bibliographystyle{plain}
 \bibliography{references}
