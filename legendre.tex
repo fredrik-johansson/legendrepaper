@@ -168,7 +168,8 @@ are computed by a certain asymptotic formula.
 However, Petras did not address the numerical evaluation of $P_n(x)$.
 Fousse \cite{fousse2007accurate} discussed the rigorous implementation
 of Gauss-Legendre quadrature
-using generic polynomial root isolation methods together with interval Newton iteration
+using generic polynomial root isolation methods together with
+interval Newton iteration
 for root refinement,
 but did not study fast methods for large $n$.
 
@@ -182,7 +183,7 @@ full set of degree-$n$ quadrature nodes of weights
 can be computed in $\widetilde{O}(n^2 p)$ time.
 For numerical integration of analytic functions
 where we typically have $p \sim n$, a better (indeed, optimal) estimate
-than the trivial $\widetilde{O}(n^3)$ bound is possible:
+than the classical $\widetilde{O}(n^3)$ bound is possible:
 
 \begin{theorem}
 \label{thm:complexity}
@@ -225,9 +226,10 @@ Our main contribution is to give a complete evaluation strategy
 for Legendre polynomials on $[-1,1]$ in ball arithmetic~\cite{vdH:ball,Johansson2017arb}.
 Computing the Legendre polynomial roots, then,
 is a relatively simple application of the results
-in~\cite{petras1999computation} together with the interval Newton method.
+in~\cite{petras1999computation} together with
+the interval Newton method~\cite{moore1979methods}.
 
-Our algorithm switches between several methods.
+Our algorithm for evaluating Legendre polynomials switches between several methods.
 In Section~\ref{sec:recurrence},
 we prove practical error bounds for the standard three-term recurrence,
 which can be efficiently implemented
@@ -237,7 +239,7 @@ For larger $n$ or $p$, we use a fast method for evaluation
 of hypergeometric series.
 Section~\ref{sec:series} discusses the hypergeometric series
 expansions that are preferable for different inputs and precision
-(including an asymptotic expansion for large $n$),
+(including a well-known asymptotic expansion for large $n$),
 and their efficient evaluation.
 In Section \ref{sec:selection}, we propose a strategy to select the
 best formula for any combination of $n, p, x$.
@@ -366,7 +368,7 @@ For small $n$, a straightforward way to compute~$P_n(x)$ is to apply
 Bonnet's three-term recurrence \eqref{eq:recurrence},
 starting from $P_0(x)=1$ and $P_1(x) = x$.
 Computing~$P_n(x)$ by this method takes about $(M(t) + O(t))\, n$
-operations, where $t$ is the working precision and $M(t)$ denotes the
+bit operations, where $t$ is the working precision and $M(t)$ denotes the
 cost of $t$-bit multiplication.
 It is thus attractive for small $n$ and $t$, especially when both
 $P_n(x)$ and $P'_n(x)$ are needed, since we can get $P_{n-1}(x)$ at no
@@ -405,6 +407,38 @@ The integer sequence $(\hat p_n)$ defined by
 \end{equation}
 is easy to compute using only integer arithmetic, and
 $\hat p_n \, 2^{-t}$ is an approximation of $p_n$.
+
+Algorithm~\ref{alg:gmprec} provides a complete C implementation
+using GMP~\cite{granlund2017}.
+
+\begin{algorithm}[h!]
+  %\algsetup{linenosize=\tiny}
+  \caption{Evaluation of Legendre polynomials in fixed-point arithmetic using GMP}
+  \small
+  \label{alg:gmprec}
+  \begin{algorithmic}[1]
+    \Require An integer $x$ and $t \ge 0$ such that $|2^{-t} x| \le 1$, and $n \ge 1$
+    \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le 0.75 (n+1)(n+2) 2^{-t}$
+  \end{algorithmic}
+\begin{verbatim}
+void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t)
+{
+    mpz_t tmp; int k; mpz_init(tmp);
+    mpz_set_ui(p, 1);
+    mpz_mul_2exp(p, p, t);
+    mpz_set(q, x);
+    for (k = 1; k < n; k++) {
+        mpz_mul(tmp, q, x);
+        mpz_tdiv_q_2exp(tmp, tmp, t);
+        mpz_mul_si(p, p, -k);
+        mpz_addmul_ui(p, tmp, 2*k+1);
+        mpz_tdiv_q_ui(p, p, k+1);
+        mpz_swap(p, q);
+    }
+    mpz_clear(tmp);
+}
+\end{verbatim}
+\end{algorithm}
 
 To bound the difference $\abs{\hat p_n \, 2^{-t} - p_n}$, we analyze
 the effect on the result of a small perturbation in each iteration
@@ -569,6 +603,7 @@ C_{n,k} = \frac{[\Gamma(k+1/2)]^2 \Gamma(n+1)}{\pi 2^k \Gamma(n+k+3/2) \Gamma(k+
 \end{equation}
 and the error term satisfies
 \begin{equation}
+\label{eq:truncerr0}
 |\xi_{n,K}(\theta)| < 2 \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2} \frac{C_{n,K}}{\sin^K(\theta)}.
 \end{equation}
 
@@ -576,7 +611,10 @@ The coefficients $C_{n,k}$ are a hypergeometric sequence with
 $$\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.$$
 
 To evaluate the error bound, we can use the following inequality for $n, k \ge 1$:
-$$C_{n,k} \le \frac{1}{\pi n^{1/2}} \frac{k! n!}{2^k (n+k)!} \le \frac{1}{\pi n^{1/2}} \frac{k!}{(2n)^k}.$$
+\begin{equation}
+\label{eq:truncerr0b}
+C_{n,k} \le \frac{1}{\pi n^{1/2}} \frac{k! n!}{2^k (n+k)!} \le \frac{1}{\pi n^{1/2}} \frac{k!}{(2n)^k}.
+\end{equation}
 
 The asymptotic expansion is in fact a convergent series
 when $2 \sin(\theta) > 1$, which allows evaluating $P_n(x)$ to unbounded
@@ -617,7 +655,10 @@ If the series are truncated after the $k = K - 1$ term
 (for any $K < d + 1$), the error is bounded by the first
 omitted term times $(1-\alpha)^{-1}$
 where
-$$\alpha = |x|^2 \frac{(d-K+1)(2d+2K+\sigma)}{K (2K+\sigma)}.$$
+\begin{equation}
+\label{eq:truncerr1}
+\alpha = |x|^2 \frac{(d-K+1)(2d+2K+\sigma)}{K (2K+\sigma)}.
+\end{equation}
 
 The expansion at zero involves no cancellation
 when applied to an imaginary argument.
@@ -639,13 +680,16 @@ and initial value $c_{n,0} = 1$.
 
 If the series is truncated after the $k = K - 1$ term,
 the error is bounded by
-$${n \choose K}{n+K \choose K} |u|^K \frac{1}{1-\alpha}, \quad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}.$$
+\begin{equation}
+\label{eq:truncerr2}
+{n \choose K}{n+K \choose K} |u|^K \frac{1}{1-\alpha}, \quad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}.
+\end{equation}
 
 For $u \ge 0$, the series does not suffer from cancellation.
 For $u < 0$, we can estimate the amount of
-cancellation from the magnitude of $P_n(|u|)$.
-For not too large $x \ge 1$, a very good approximation is
-$$P_n(x) \approx \sum_{k=0}^{\infty} \frac{n^{2k}}{(k!)^2} u^k = I_0(2n\sqrt{u}) \approx e^{2n\sqrt{u}}.$$
+cancellation from the magnitude of $P_n(x')$ where $|u| = (x'-1)/2$.
+For not too large $x' \ge 1$, a very good approximation is
+$$P_n(x') \approx \sum_{k=0}^{\infty} \frac{n^{2k}}{(k!)^2} u^k = I_0(2n\sqrt{u}) \approx e^{2n\sqrt{u}}.$$
 We therefore need about $2n\sqrt{\max(0,-u)} / \log(2)$ bits
 of increased precision when evaluating the series.
 
@@ -660,7 +704,10 @@ where $c'_{n,k} = (k+1) c_{n,k+1} / 2$ satisfies
   \frac{c'_{n,k}}{c'_{n,k-1}} = \frac{(n-k)(n+k+1)}{k(k+1)}.
 \]
 Since $c'_{n,k} \le n c_{n,k+1}$, the truncation error is bounded by
-$$n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}$$
+\begin{equation}
+\label{eq:truncerr2b}
+n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}
+\end{equation}
 with $u$ and $\alpha$ as above.
 
 \subsection{Hypergeometric series evaluation}
@@ -671,19 +718,31 @@ We use rectangular splitting~\cite{Smith1989,Johansson2014rectangular}
 for fast evaluation of hypergeometric series with
 rational parameters where the argument $x$ is a high-precision number.
 This reduces evaluating a $K$-term series to
-$K$ cheap scalar operations (additions and multiplications or divisions
+$O(K)$ cheap scalar operations (additions and multiplications or divisions
 by small integer coefficients)
-and $2\sqrt{K}$ expensive nonscalar operations (general multiplications),
-whereas direct evaluation requires $K$ expensive operations.
+and about $2\sqrt{K}$ expensive nonscalar operations (general multiplications),
+whereas direct evaluation of the hypergeometric
+recurrence requires $O(K)$ expensive operations.
 
-Due to the $K$ scalar operations,
-rectangular splitting is theoretically slower
-than the $O(\sqrt{K} \log(K))$ baby-step giant-step method,
+Due to the scalar operations, rectangular splitting ultimately
+requires $O(K)$ arithmetic operations with $\widetilde{O}(p)$ bit complexity
+each
+just like straightforward evaluation of the recurrence, so it is
+not a genuine asymptotic improvement, but in practice this
+algorithm is still faster even at moderate precision
+and can give more than a factor 100 speedup at very high precision.
+It is possible to genuinely reduce the complexity of evaluating
+a hypergeometric sequence to $O(\sqrt{K} \log(K))$ arithmetic
+operations using a baby-step giant-step method
+that employs fast multipoint evaluation,
 but in practice rectangular splitting
 performs better until both $K$ and the bit precision
 exceed $10^6$ (see \cite{Johansson2014rectangular}).
-Binary splitting: low precision input, high internal precision
-(not very useful here due to existence of asymptotic series).
+
+Another technique for fast evaluation of hypergeometric series,
+binary splitting, would be useful when $p$ is large and the
+argument $x$ is a rational number with small numerator and denominator,
+but this case is not relevant for our application.
 
 \begin{algorithm}[h!]
   %\algsetup{linenosize=\tiny}
@@ -718,7 +777,8 @@ Binary splitting: low precision input, high internal precision
   \end{algorithmic}
 \end{algorithm}
 
-The process is formalized in Algorithm \ref{alg:hyprs}.
+Algorithm \ref{alg:hyprs} presents our version of rectangular splitting
+for the present application.
 This algorithm is a generalization of the
 method for evaluating Taylor series of elementary
 functions given in~\cite{Johansson2015elementary},
@@ -726,8 +786,8 @@ which combines rectangular splitting
 with partially unrolling the recurrence to reduce the number of scalar divisions
 (which in practice are more costly than scalar multiplications).
 The terms are computed in the reverse direction to allow
-using Horner's rule for outer
-multiplication.
+using Horner's rule for the outer
+multiplications.
 
 Our implementation uses ball arithmetic for $x$ and $s$
 so that no error analysis is needed, and we use a bignum type for $c$ (so
@@ -779,7 +839,10 @@ for error bounds of series truncations.
 We have the binary entropy estimate
 $$\log_2 {n \choose k} \le n G(k/n), \quad G(x) = -x \log_2(x) - (1-x) \log_2(1-x)$$
 and the equivalent form
-$${n \choose k} \le \left(\frac{n}{n-k}\right)^{n-k} \left(\frac{n}{k}\right)^k = \frac{n^n}{k^k (n-k)^{n-k}}.$$
+\begin{equation}
+\label{eq:binbound}
+{n \choose k} \le \left(\frac{n}{n-k}\right)^{n-k} \left(\frac{n}{k}\right)^k = \frac{n^n}{k^k (n-k)^{n-k}}.
+\end{equation}
 The function $G(x)$ can be evaluated cheaply with a precomputed
 lookup table (only a coarse estimate is needed).
 
@@ -787,9 +850,20 @@ lookup table (only a coarse estimate is needed).
 
 \label{sec:selection}
 
-We first use a set of simple heuristic cutoffs found experimentally to decide whether to use the basecase recurrence or one of the series expansions. The recurrence is mainly faster for some combinations of $p < 1000$, $n < 400$ when computing $(P_n(x), P'_n(x))$ simultaneously and for some combinations of $p < 500$, $n < 100$ when computing $P_n(x)$ alone (in all cases subject to some boundaries $\varepsilon < x < 1 - \varepsilon$); the actual optimal regions are complicated due to differences in overhead between fixed-point integer arithmetic and ball arithmetic for the respective algorithm implementations.
+We first use a set of simple heuristic cutoffs found experimentally to decide whether to use the basecase recurrence or one of the series expansions. The recurrence is mainly faster for some combinations of $p < 1000$, $n < 400$ when computing $(P_n(x), P'_n(x))$ simultaneously and for some combinations of $p < 500$, $n < 100$ when computing $P_n(x)$ alone (in all cases subject to some boundaries $\varepsilon < x < 1 - \varepsilon$); the actual optimal regions are complicated due to differences in overhead between fixed-point integer arithmetic and ball arithmetic for the respective algorithm implementations. For the actual cutoffs used, we refer to the source code.
 
 To select between the series expansion at $x = 0$, the expansion at $x = 1$, and the asymptotic series, the following heuristic is used. For each algorithm $A$, we estimate the evaluation cost as $C_A = K_A (p + p_A)$ where $K_A$ is the number of terms required by algorithm~$A$ ($K_A = \infty$ if $A$ is the asymptotic series and it does not converge to the required accuracy), $p$ is the precision goal, and $p_A$ is the extra precision required by algorithm $A$ due to internal cancellation. For the asymptotic series, we multiply the cost by an extra factor 2 as a penalty for using complex numbers. In the end, we select the algorithm with the lowest $C_A$.
+
+We select $K_A$ and estimate $p_A$ heuristically using machine precision
+floating-point computations, working with logarithmic magnitudes to
+avoid underflow and overflow.
+During the actual evaluation of the series expansions, $K_A$ and $p_A$ are then given;
+we compute rigorous upper bounds
+for the truncation error via
+\eqref{eq:truncerr0}, \eqref{eq:truncerr0b}, \eqref{eq:truncerr1},
+\eqref{eq:truncerr2}, \eqref{eq:truncerr2b}, \eqref{eq:binbound}
+using floating-point arithmetic with directed rounding,
+while additional rounding errors are tracked by the ball arithmetic.
 
 \begin{figure}[h!]
 \begin{centering}
@@ -800,7 +874,9 @@ The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$
 \end{centering}
 \end{figure}
 
-The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$ is not completely realistic, but this cost estimate nonetheless captures the correct asymptotics $x \to 0, x \to 1, n \to \infty, p \to \infty$, and hopefully will not be too inaccurate in the transition regions. This is verified empirically. The plots in Figure~\ref{fig:timeplot} show the measured timings to evaluate $(P_n(x), P'_n(x))$ at $x = r_{n,k}$ where $r_{n,k}$ is the root with index $k$ (where $k/n = 0$ is closest to $x = 1$ and $k/n = 1/2$ is closest to $x = 0$), using the automatic algorithm selection. The individual curves show the time at respective precisions $p = 64, 256, 1024, 4096, 16384$. Each curve has been normalized by its median height, i.e.\ the median time to compute any root with a fixed $(n,p)$ is set to 1.
+The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$ is not completely realistic, but this cost estimate nonetheless captures the correct asymptotics when
+$$x \to 0, \quad x \to 1, \quad n \to \infty, \quad p \to \infty$$
+separately, and hopefully will not be too inaccurate in the transition regions. This is verified empirically. The plots in Figure~\ref{fig:timeplot} show the measured timings to evaluate $(P_n(x), P'_n(x))$ at $x = r_{n,k}$ where $r_{n,k}$ is the root with index $k$ (where $k/n = 0$ is closest to $x = 1$ and $k/n = 1/2$ is closest to $x = 0$), using the automatic algorithm selection. The individual curves show the time at respective precisions $p = 64, 256, 1024, 4096, 16384$. Each curve has been normalized by its median height, i.e.\ the median time to compute any root with a fixed $(n,p)$ is set to 1.
 
 For large $n$ and $p \ll n$, a sharp peak appears at the transition between the series expansion at $x = 1$ and the asymptotic expansion. This peak could presumably be removed by use of an asymptotic method for large $n$ valid when $x \approx 1$. However, the extra area under the peak compared to the area under the median baseline is so small that generating the full set of Gauss quadrature nodes would not be sped up much.
 
