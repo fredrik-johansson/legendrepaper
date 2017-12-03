@@ -1208,9 +1208,9 @@ $j = 1, 2, 3\ldots$, and $n$ is chosen so that the tail of the
 infinite series is smaller than $2^{-p}$.
 The $2n+1$ nodes and weights can be computed with $n + O(1)$
 exponential function evaluations and $O(n)$ arithmetic operations.
-Double exponential quadrature
-typically achieves the same accuracy as $n$-point Gauss-Legendre quadrature
-using $Cn$ evaluation points where $C$ is slightly larger than
+Double exponential quadrature with $Cn$ evaluation points
+typically achieves the same accuracy as $n$-point Gauss-Legendre quadrature,
+where $C$ is slightly larger than
 for Clenshaw-Curtis, e.g.\ $C \approx 5$; see Table~\ref{tab:dequad}.
 The time to compute nodes and weights is comparable
 to Clenshaw-Curtis quadrature (around 0.2 seconds for 1000-digit
