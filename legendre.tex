@@ -258,6 +258,10 @@ the observed running time is effectively subcubic.
 Furthermore, if $p = O(1)$, the complexity reduces to $\widetilde{O}(n)$
 as in the machine-precision implementations by Bogaert and others.
 
+Finally, Section~\ref{sec:vsothers} reviews the viability of Gauss-Legendre
+quadrature compared to other methods
+for extremely high precision integration.
+
 Our code for computing Legendre polynomials and
 Gauss-Legendre nodes and weights is freely available as part of
 the Arb library \cite{Johansson2017arb}.
@@ -294,7 +298,7 @@ we also need to evaluate the derivative $P'_n(x)$,
 typically at the same time as $P_n(x)$ itself.
 A simple option is to deduce $P'_n(x)$ from
 $P_n(x)$ and $P_{n-1}(x)$ using \eqref{eq:mixed}.
-When $x$ is close to $1$, though, this formula involves a
+When $x$ is close to~$1$, though, this formula involves a
 cancellation of about $\abs{\log_2(1 - x)}$ bits in the subtraction,
 followed by a division by $x^2 - 1$, so that a direct evaluation
 of $P'_n(x)$ may be preferable to reduce the working precision.
@@ -340,7 +344,7 @@ Our main algorithm for evaluating~$P_n$ at~$x$ combines the following
 methods:
 \begin{itemize}
   \item the iterative computation of~$P_n(x)$
-  via~\eqref{eq:recurrence},
+  via the three-term recurrence~\eqref{eq:recurrence},
   \item an asymptotic expansion of $P_n(x)$ as~$n \to \infty$,
   \item the usual terminating expansion of $P_n$ in the monomial
   basis,
@@ -353,12 +357,25 @@ is a rational function of~$k$.
 The constraints and heuristics used to select between these algorithms
 are described in detail below.
 Roughly speaking,
-the recurrence is used for small index~$n$ and precision~$p$, when~$x$
-is not too close to~$1$,
+the three-term recurrence is used for small index~$n$ and precision~$p$, when~$x$
+is not too close to~$1$;
 the asymptotic series when $n$~is large enough, again with $x$~not too
-close to~$1$,
-the expansion at~$0$ for intermediate precisions and $x$~far from~$1$,
-and the expansion at~$1$ when $x$ is close to~$1$.
+close to~$1$;
+the expansion at~$0$ for large $p$ unless $x$ is close to~$1$;
+and finally the expansion at~$1$ in the remaining cases
+when $x$ is close to~$1$.
+
+At $p$-bit precision, it is sufficient to choose algorithms
+and internal evaluation parameters to target
+an absolute error of about $2^{-p}$, or more precisely $2^{-p-O(\log n)}$
+for a relative error of about $2^{-p}$ measured with respect
+to monotone envelopes for $P_n(x)$ and $P'_n(x)$ as in~\cite{Bogaert2012}.
+The relative error of a computed ball for $P_n(x)$ where $x$ is near a zero $x_k$
+can be arbitrarily large, but the relative error of $P'_n(x)$ near $x_k$
+will be small, which is sufficient for Newton iteration.
+Since the output consists of a ball, we also have the option of catching
+a result with large relative error and repeating the evaluation with a
+higher precision as needed.
 
 \section{Basecase recurrence}
 
@@ -407,13 +424,12 @@ The integer sequence $(\hat p_n)$ defined by
 \end{equation}
 is easy to compute using only integer arithmetic, and
 $\hat p_n \, 2^{-t}$ is an approximation of $p_n$.
-
 Algorithm~\ref{alg:gmprec} provides a complete C implementation
 using GMP~\cite{granlund2017}.
 
 \begin{algorithm}[h!]
   %\algsetup{linenosize=\tiny}
-  \caption{Evaluation of Legendre polynomials in fixed-point arithmetic using GMP}
+  \caption{Evaluation of Legendre polynomials in GMP fixed-point arithmetic}
   \small
   \label{alg:gmprec}
   \begin{algorithmic}[1]
@@ -572,7 +588,7 @@ presented next work very well in this case.
 
 \label{sec:series}
 
-For moderately large $n$, we use series expansions of $P_n(x)$ with
+For large $n$ or $p$, we use series expansions of $P_n(x)$ with
 respect to either $n$ or $x$ rather than the algorithm from the
 previous section.
 The coefficients of the series are also computed by recurrence,
@@ -652,7 +668,8 @@ where $A_{\pm 1}(d,0) = 1$ and
 $$\frac{A_{\sigma}(d,k)}{A_{\sigma}(d,k-1)} = \frac{(d-k+1) (2d+2k+\sigma)}{k (2k+\sigma)}.$$
 
 If the series are truncated after the $k = K - 1$ term
-(for any $K < d + 1$), the error is bounded by the first
+(for any $K < d + 1$), comparison with a geometric series
+shows that the error is bounded by the first
 omitted term times $(1-\alpha)^{-1}$
 where
 \begin{equation}
@@ -728,15 +745,15 @@ Due to the scalar operations, rectangular splitting ultimately
 requires $O(K)$ arithmetic operations with $\widetilde{O}(p)$ bit complexity
 each
 just like straightforward evaluation of the recurrence, so it is
-not a genuine asymptotic improvement, but in practice this
-algorithm is still faster even at moderate precision
-and can give more than a factor 100 speedup at very high precision.
+not a genuine asymptotic improvement, but
+it is an improvement in practice and
+can give more than a factor 100 speedup at very high precision.
 It is possible to genuinely reduce the complexity of evaluating
 a hypergeometric sequence to $O(\sqrt{K} \log(K))$ arithmetic
 operations using a baby-step giant-step method
 that employs fast multipoint evaluation,
 but in practice rectangular splitting
-performs better until both $K$ and the bit precision
+performs better until both $K$ and~$p$
 exceed $10^6$ (see \cite{Johansson2014rectangular}).
 
 Another technique for fast evaluation of hypergeometric series,
@@ -850,7 +867,7 @@ lookup table (only a coarse estimate is needed).
 
 \label{sec:selection}
 
-We first use a set of simple heuristic cutoffs found experimentally to decide whether to use the basecase recurrence or one of the series expansions. The recurrence is mainly faster for some combinations of $p < 1000$, $n < 400$ when computing $(P_n(x), P'_n(x))$ simultaneously and for some combinations of $p < 500$, $n < 100$ when computing $P_n(x)$ alone (in all cases subject to some boundaries $\varepsilon < x < 1 - \varepsilon$); the actual optimal regions are complicated due to differences in overhead between fixed-point integer arithmetic and ball arithmetic for the respective algorithm implementations. For the actual cutoffs used, we refer to the source code.
+We first use a set of cutoffs found experimentally to decide whether to use the basecase recurrence or one of the series expansions. The recurrence is mainly faster for some combinations of $p < 1000$, $n < 400$ when computing $(P_n(x), P'_n(x))$ simultaneously and for some combinations of $p < 500$, $n < 100$ when computing $P_n(x)$ alone (in all cases subject to some boundaries $\varepsilon < x < 1 - \varepsilon$); the actual optimal regions are complicated due to differences in overhead between fixed-point integer arithmetic and ball arithmetic for the respective algorithm implementations. For the actual cutoffs used, we refer to the source code.
 
 To select between the series expansion at $x = 0$, the expansion at $x = 1$, and the asymptotic series, the following heuristic is used. For each algorithm $A$, we estimate the evaluation cost as $C_A = K_A (p + p_A)$ where $K_A$ is the number of terms required by algorithm~$A$ ($K_A = \infty$ if $A$ is the asymptotic series and it does not converge to the required accuracy), $p$ is the precision goal, and $p_A$ is the extra precision required by algorithm $A$ due to internal cancellation. For the asymptotic series, we multiply the cost by an extra factor 2 as a penalty for using complex numbers. In the end, we select the algorithm with the lowest $C_A$.
 
@@ -1060,7 +1077,7 @@ is shown in Table~\ref{tab:arprectimings}.
 $n$ & ARPREC & Our code &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
-    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\ 
+    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\
    &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
 12 & 0.00520 & 0.000735 & $10^{-14}$ &       &   $10^{-1}$ &  &  $10^{-8}$ & \\
 24 & 0.0189 & 0.00197 & $10^{-28}$  &       &  $10^{-9}$  & &  $10^{-17}$ & \\
@@ -1080,6 +1097,26 @@ error
 and the time to evaluate the degree-$n$ approximation
 given precomputed nodes.}
 \label{tab:arprectimings}
+\end{centering}
+\end{table}
+
+\begin{table}[h!]
+\begin{centering}
+\begin{tabular}{ c c c | c c | c c | c c }
+$h$ & $2n+1$ & Time &
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
+    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\ 
+   &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
+$2^{-7}$ & 1989 & $0.07$ & $10^{-407}$ & 0.12 & $10^{-423}$ & 0.93 & $10^{-314}$ & 6.3 \\
+$2^{-8}$ & 3977 & $0.14$ & $10^{-814}$ & 0.25 & $10^{-909}$ & 1.75 & $10^{-630}$ & 13.0 \\
+$2^{-9}$ & 7955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\varepsilon$ & 25.1
+\end{tabular}
+\caption{Left columns: step sizes $h$, number of evaluation
+points, and time to compute nodes for double exponential quadrature
+at 1000-digit precision. Right columns: error and evaluation
+time given precomputed nodes.}
+\label{tab:dequad}
 \end{centering}
 \end{table}
 
@@ -1103,30 +1140,105 @@ On the other hand, since the time to generate nodes with our code only
 grows linearly with~$n$ beyond $n \approx p$,
 increasing the degree further is not necessarily a problem,
 particularly if the integrand is expensive to evaluate.
+
 In the present work, we abstain from a more detailed discussion of
 adaptive integration strategies and the computation
 of error bounds for the integral itself.
+However, we mention that Arb contains an implementation of a
+version of the Petras algorithm~\cite{petras2002self} for rigorous
+integration. This code uses both adaptive path subdivision
+and Gauss-Legendre quadrature with an adaptive choice of $n$ up to
+$n \approx 0.5p$ by default, with degree increments
+$n \approx 2^{k/2}$ and automatic caching of the nodes
+for fast repeated integrations.
+Node generation takes at most a few seconds for a first integration
+at 1000-digit precision
+and a few milliseconds for 100-digit precision.
 
-\section{Viability of Gauss-Legendre quadrature for high-precision integration}
+\section{Gauss-Legendre versus Clenshaw-Curtis and double exponential quadrature}
 
-Gaussian quadrature is not the only viable
-option for high-precision numerical integration. Clenshaw-Curtis quadrature
-has received considerable attention in recent years
-as an alternative
-since it achieves a similar rate of convergence
-but only requires an FFT computation with $O(n \log n)$ arithmetic operations~\cite{trefethen2008gauss}.
-Another alternative is the double exponential (tanh-sinh) method,
-which only requires $O(n)$ elementary function evaluations
-to generate~$n$ nodes and weights.
-The double exponential method has the additional advantage
-that rapid convergence is retained
-for integrands with (reasonably nice) endpoint singularities.
-However, Gauss-Legendre quadrature requires fewer evaluation
-points than the other schemes if the integrand is analytic
-(on a sufficiently large domain around
-the interval of integration), so it tends to be the best
-choice for analytic integrands when the integrand is expensive
-to evaluate or when the nodes can be precomputed.
+\label{sec:vsothers}
+
+In recent years, the Clenshaw-Curtis and double exponential (tanh-sinh) quadrature schemes
+have received considerable attention as alternatives to Gauss-Legendre
+quadrature for numerical integration with very high precision~\cite{bailey2011high,trefethen2008gauss}.
+Both schemes
+typically require a constant factor more evaluation points than Gauss-Legendre rules
+for equivalent accuracy, but the nodes and weights are easier to compute.
+Gauss-Legendre quadrature is therefore the best choice
+when the integrand is expensive to evaluate or when nodes can
+be precomputed for several integrations.
+It is of some interest to give an empirical.
+
+Here we assume an analytic integrand with singularities well isolated from the
+the finite path of integration so that Gauss-Legendre quadrature is a good
+choice to begin with; as observed in~\cite{trefethen2008gauss},
+Clenshaw-Curtis often converges with identical rate to Gauss-Legendre for
+less well-behaved integrands,
+and the double exponential method is far superior to either
+Clenshaw-Curtis or Gauss-Legendre for
+analytic integrands with endpoint singularities.
+
+Clenshaw-Curtis quadrature uses the Chebyshev nodes
+$\cos(\pi k / n), 0 \le k \le n$, and the corresponding weights can be expressed
+by a discrete cosine transform which takes $O(n \log n)$
+arithmetic operations to compute by FFT.
+As a rule of thumb, $2n$-point Clenshaw-Curtis quadrature
+gives the same accuracy as $n$-point Gauss-Legendre quadrature
+(for instance, the Clenshaw-Curtis rule with $n = 384$ gives
+errors of $10^{-229}$, $10^{-294}$ and $10^{-154}$ for the three
+integrals in Table~\ref{tab:arprectimings}).
+As a point of comparison with Tables \ref{tab:timings} and \ref{tab:arprectimings},
+Arb computes a length-2048 FFT with 1000-digit precision
+in 0.09 seconds and a length-32768 FFT with 10000-digit precision
+in 36 seconds.
+The precomputation for Clenshaw-Curtis quadrature is therefore
+roughly a factor 20 cheaper than for Gauss-Legendre quadrature
+with our algorithm, while subsequent integration with
+cached weights is twice as expensive for Clenshaw-Curtis.
+
+Double exponential quadrature uses the change of variables
+$x = \tanh(\tfrac12 \pi \sinh t)$ to convert an integral on $(-1,1)$
+to the interval $(-\infty,+\infty)$ in such a way that
+the trapezoidal rule $\int_{-\infty}^{\infty} f(t) dt \approx h \sum_{k=-n}^{n} f(hk)$
+converges exponentially fast.
+One generally chooses the discretization parameter as $h = 2^{-j}$ so that
+both the evaluation points and weights can be recycled for successive levels
+$j = 1, 2, 3\ldots$, and $n$ is chosen so that the tail of the
+infinite series is smaller than $2^{-p}$.
+The $2n+1$ nodes and weights can be computed with $n + O(1)$
+exponential function evaluations and $O(n)$ arithmetic operations.
+Double exponential quadrature
+typically achieves the same accuracy as $n$-point Gauss-Legendre quadrature
+using $Cn$ evaluation points where $C$ is slightly larger than
+for Clenshaw-Curtis, e.g.\ $C \approx 5$; see Table~\ref{tab:dequad}.
+The time to compute nodes and weights is comparable
+to Clenshaw-Curtis quadrature (around 0.2 seconds for 1000-digit
+precision and two minutes for 10000-digit precision).
+
+In summary, for integration
+with precision in the neighborhood of $10^3$ to $10^4$ digits,
+computing $n$ nodes with our algorithm is about an
+order of magnitude more expensive than performing $n$ elementary function (e.g.\ exp or log)
+evaluations or computing an FFT of length~$n$.
+This makes Gauss-Legendre quadrature competitive for computing more than $m$
+integrals (assuming that nodes and weights are cached),
+for a single integral requiring splitting into $m$ subintervals,
+or for a single integral when the integrand costs more $m$ elementary
+function evaluations, where $m \approx 10^1$.
+
+The picture becomes more complicated when accounting for the method
+used to estimate errors in an adaptive integration algorithm.
+One drawback of the Gauss-Legendre scheme is that the nodes
+are not nested, and therefore an adaptive strategy that
+repeatedly doubles the quadrature degree
+requires twice the number of function evaluations as
+the degree of the final level.
+However, this drawback disappears if the
+error is estimated by extrapolation or if an error bound is computed
+a priori as in the Petras algorithm~\cite{petras2002self}.
+
+\section{Conclusion}
 
 In \cite{bailey2011high}, it was claimed that
 ``There is no known scheme for generating Gaussian abscissa--weight pairs
@@ -1137,9 +1249,11 @@ extreme-precision calculations -- i.e., several thousand digits or
 more -- the cost of computing them
 even once becomes prohibitive''.
 
-We may remark that using asymptotic expansions avoids the quadratic
-dependence on $n$ for fixed precision $p$, and Theorem~\ref{thm:complexity}
-avoids the implied cubic dependence on $n$ when $n \sim p$.
+Here, the quadratic dependence refers to the number of arithmetic operations.
+We may remark that using asymptotic expansions in the
+evaluation of Legendre polynomials avoids the quadratic
+dependence on~$n$ for fixed precision $p$, and Theorem~\ref{thm:complexity}
+avoids the implied cubic time dependence on $n$ when $n \sim p$.
 In fact, Theorem~\ref{thm:complexity} implies that
 Gauss-Legendre, Clenshaw-Curtis and double exponential
 quadrature actually have the same quasi-optimal asymptotic bit complexity,
@@ -1149,20 +1263,19 @@ Although our experiments show that the algorithm in Theorem~\ref{thm:complexity}
 hardly is practical, our main algorithm does achieve a
 significant speedup for practical $p$ and $n$
 which allows us to compute Gauss-Legendre quadrature rules for
-1000-digit integration in about a second and for 10000-digit integration in a few minutes
+1000-digit integration in 1-2 seconds and for 10000-digit integration in 10-20 minutes
 on a single core (with trivial parallelization since all roots
 are computed independently). This is not prohibitively
 expensive compared to the repeated evaluation
-of typical analytic integrands.
-
-\section{Conclusion}
+of typical integrands, especially if several integrations are needed.
 
 A natural extension of this work would be to
 consider Gaussian quadrature rules for different
 weight functions.
 The techniques that work for Legendre polynomials should transfer to other
 classical orthogonal polynomials (Jacobi, Hermite, Laguerre, etc.)
-which likewise are hypergeometric and satisfy three-term recurrence relations.
+which likewise have hypergeometric expansions
+and satisfy three-term recurrence relations.
 The main obstacle might be
 to obtain large-$n$ asymptotic expansions with suitable error bounds.
 
