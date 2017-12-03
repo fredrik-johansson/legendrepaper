@@ -885,7 +885,7 @@ while additional rounding errors are tracked by the ball arithmetic.
 \begin{figure}[h!]
 \begin{centering}
 \includegraphics[width=0.8\textwidth]{timeplot}
-\caption{Time to evaluate $(P_n(x), P'_n(x))$ at the location of the root $x = r_{n,k}$ for $0 \le k < n/2$, at varying levels of precision $p$.
+\caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
 The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
 \label{fig:timeplot}
 \end{centering}
@@ -893,7 +893,12 @@ The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$
 
 The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$ is not completely realistic, but this cost estimate nonetheless captures the correct asymptotics when
 $$x \to 0, \quad x \to 1, \quad n \to \infty, \quad p \to \infty$$
-separately, and hopefully will not be too inaccurate in the transition regions. This is verified empirically. The plots in Figure~\ref{fig:timeplot} show the measured timings to evaluate $(P_n(x), P'_n(x))$ at $x = r_{n,k}$ where $r_{n,k}$ is the root with index $k$ (where $k/n = 0$ is closest to $x = 1$ and $k/n = 1/2$ is closest to $x = 0$), using the automatic algorithm selection. The individual curves show the time at respective precisions $p = 64, 256, 1024, 4096, 16384$. Each curve has been normalized by its median height, i.e.\ the median time to compute any root with a fixed $(n,p)$ is set to 1.
+separately, and hopefully will not be too inaccurate in the transition regions. This is verified empirically. The plots in Figure~\ref{fig:timeplot} show the measured
+timings to evaluate $(P_n(x), P'_n(x))$ using the automatic algorithm selection.
+The evaluation points are $\cos(\pi (4k+3)/(4n+2))$ for $0 \le k < n/2$, matching
+the distribution of the roots $x_k$ of $P_n(x)$ on $(0,1]$ (where $k/n = 0$ is closest to $x = 1$ and $k/n = 1/2$ is closest to $x = 0$).
+The individual curves show the time at respective precisions $p = 64, 256, 1024, 4096, 16384$.
+Each curve has been normalized by its median height, i.e.\ the median time to compute any root with a fixed $(n,p)$ is set to 1.
 
 For large $n$ and $p \ll n$, a sharp peak appears at the transition between the series expansion at $x = 1$ and the asymptotic expansion. This peak could presumably be removed by use of an asymptotic method for large $n$ valid when $x \approx 1$. However, the extra area under the peak compared to the area under the median baseline is so small that generating the full set of Gauss quadrature nodes would not be sped up much.
 
