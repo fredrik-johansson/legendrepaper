@@ -1,3 +1,4 @@
+#include "fmpq_poly.h"
 #include "arb_hypgeom.h"
 #include "flint/profiler.h"
 
