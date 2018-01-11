@@ -426,6 +426,8 @@ is easy to compute using only integer arithmetic, and
 $\hat p_n \, 2^{-t}$ is an approximation of $p_n$.
 Algorithm~\ref{alg:gmprec} provides a complete C implementation
 using GMP~\cite{granlund2017}.
+As a small optimization, we delay the division by~$n+1$ until we have
+accumulated a denominator of the size of a machine word.
 
 \begin{algorithm}[h!]
   %\algsetup{linenosize=\tiny}
@@ -434,23 +436,28 @@ using GMP~\cite{granlund2017}.
   \label{alg:gmprec}
   \begin{algorithmic}[1]
     \Require An integer $x$ and $t \ge 0$ such that $|2^{-t} x| \le 1$, and $n \ge 1$
-    \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le 0.75 (n+1)(n+2) 2^{-t}$
+    \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.625 \, (n+1)(n+2) + 1) \, 2^{-t}$
   \end{algorithmic}
 \begin{verbatim}
 void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t)
 {
-    mpz_t tmp; int k; mpz_init(tmp);
+    mpz_t tmp;  int k;  mpz_init(tmp);
+    unsigned long d = 1;
     mpz_set_ui(p, 1);
     mpz_mul_2exp(p, p, t);
     mpz_set(q, x);
     for (k = 1; k < n; k++) {
         mpz_mul(tmp, q, x);
         mpz_tdiv_q_2exp(tmp, tmp, t);
-        mpz_mul_si(p, p, -k);
+        mpz_mul_si(p, p, -k*k);
         mpz_addmul_ui(p, tmp, 2*k+1);
-        mpz_tdiv_q_ui(p, p, k+1);
         mpz_swap(p, q);
+        d *= k;
+        if (d >= (1ul << (GMP_LIMB_BITS - BIT_COUNT(n)))) {
+          mpz_tdiv_q_ui(p, p, d);   mpz_tdiv_q_ui(q, q, d);  d = 1;
+        }
     }
+    mpz_tdiv_q_ui(p, p, d);  mpz_tdiv_q_ui(q, q, d*n);
     mpz_clear(tmp);
 }
 \end{verbatim}
@@ -557,6 +564,12 @@ satisfies
   \qquad
   n \geq 0.
 \]
+The quantities $p$, $q$ returned by Algorithm~\ref{alg:gmprec}
+satisfy
+\begin{equation} \label{eq:bound-gmprec}
+  |p - 2^t P_{n-1}(x)|, |q - 2^t P_{n}(x)|
+  \le 0.625 (n+1)(n+2) + 1.
+\end{equation}
 \end{corollary}
 
 \begin{proof}
@@ -578,6 +591,66 @@ where $\abs{\varepsilon_n} \leq 3$.
 Proposition \ref{prop:rec-error} applied to
 $\tilde p_n = \hat p_n \, 2^{-t}$
 then provides the desired bound.
+
+\newcommand{\vp}{\mathtt p}
+\newcommand{\vq}{\mathtt q}
+\newcommand{\vd}{\mathtt d}
+
+Turning to Algorithm~\ref{alg:gmprec},
+let $\vp_k$, $\vq_k$, $\vd_k$ denote the values of the variables
+$\vp$, $\vq$, $\vd$ at the end of iteration~$k$,
+and $\vp_0$, $\vq_0$, $\vd_0$ their values before the loop.
+Consider the sequence
+$\tilde p_k = \vq_{k-1} 2^{-t}/(k \vd_{k-1})$, $k \geq 1$,
+extended by $\tilde p_0 = 1$ and an arbitrary~$\tilde p_{-1}$.
+For all $k \geq 1$,
+depending whether the conditional branch is taken, we have either
+\begin{align*}
+  \vp_k &= \vq_{k-1}, &
+  \vq_k &= (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor
+          - k^2 \vp_{k-1}, &
+  \vd_k &= k \vd_{k-1} \\
+\intertext{or}
+  \vp_k &= \left\lceil \frac{\vq_{k-1}}{k \vd_{k-1}} \right\rfloor, &
+  \vq_k &= \left\lceil \frac{
+          (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor - k^2 \vp_{k-1}}
+          {k \vd_{k-1}} \right\rfloor, &
+  \vd_k &= 1.
+\end{align*}
+In both cases, for some $\alpha_k, \beta_k, \gamma_k$ with
+$|\alpha_k|, |\beta_k|, |\gamma_k| \leq 1$, we have
+\begin{align*}
+  \frac{\vp_k}{\vd_k}
+  &= \frac{\vq_{k-1}}{k \vd_{k-1}} + \alpha_k
+   = \tilde p_k + \alpha_k, &
+  \frac{\vq_k}{\vd_k}
+  &= \frac{ (2k+1) (x \vq_{k-1} + \beta_k) - k^2 \vp_{k-1} }
+          { k \vd_{k-1} }
+     + \gamma_k
+\end{align*}
+and hence
+\[
+  \tilde p_{k+1}
+  = \frac{\vq_k 2^{-t}}{(k+1) \vd_k}
+  = \frac{ (2k+1) x \tilde p_k - k \tilde p_{k-1} }{k+1}
+     + \left(
+        - \frac{k}{k+1} \alpha_k
+        + \frac{2k + 1}{k (k+1) \vd_{k-1}} \beta_k
+        + \frac{1}{k+1} \gamma_k
+       \right) 2^{-t}.
+\]
+The same equality holds for $k=0$, with
+$\alpha_0 = \beta_0 = \gamma_0 = 0$.
+Thus, $\tilde p_k$ satisfies~\eqref{eq:rec-pert} with
+$\bar\varepsilon = 2.5 \cdot 2^{-t}$, and we have
+$|\tilde p_k - P_k(x)| \leq 0.625 (k+1)(k+2) 2^{-t}$
+by Proposition \ref{prop:rec-error}.
+The final values of $\vq$~and~$\vp$ are respectively
+$\lceil 2^t \tilde p_n \rfloor$
+and
+$\lceil \vp_{n-1}/\vd_{n-1} \rfloor
+= \lceil \tilde 2^t \tilde p_{n-1} + \alpha_{n-1} \rfloor$,
+whence the bound~\eqref{eq:bound-gmprec}.
 \end{proof}
 
 We currently do not use fast evaluation techniques for large~$n$ in
