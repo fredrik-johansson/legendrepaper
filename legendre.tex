@@ -175,7 +175,7 @@ full set of degree-$n$ quadrature nodes and weights
 can be computed in $\OOtilde(n^2 p)$ time.
 For numerical integration of analytic functions
 where we typically have $p \sim n$, a better (indeed, optimal) estimate
-than the classical $\OOtilde(n^3)$ bound is possible:
+than the classical $\OOtilde(n^3)$ bound is possible.
 
 \begin{theorem}
 \label{thm:complexity}
@@ -183,18 +183,18 @@ If $p \sim n$, then the Gauss-Legendre nodes of degree $n$ can be computed to
 $p$-bit accuracy in $\OOtilde(n^2)$ (equivalently, $\OOtilde(p^2)$) bit operations.
 \end{theorem}
 
-\begin{proof}
-(Sketch.)
+\begin{proof}[Proof sketch]
 Using the formulas in~\cite{petras1999computation},
 we can compute good initial values for Newton iteration
 in $\OOtilde(n)$ bit operations.
 The Newton iteration can be performed for all roots
 simultaneously using fast multipoint evaluation, which costs
-$\OOtilde(n p)$ bit operations.
+$\OOtilde(n p)$ bit operations%
 Fast multipoint evaluation is numerically unstable and
 generically loses $\OO(n)$ bits of accuracy, but we can compensate for
 this loss by using $\OO(n)$ guard bits.
 Since $p \sim n$ by assumption, this does not change the asymptotic complexity estimate~\cite{kobel2013fast}.
+
 \end{proof}
 
 Completing the details
@@ -204,6 +204,9 @@ the algorithm behind Theorem~\ref{thm:complexity} has high overhead
 in practice. Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
 makes parallelization difficult.
+See Section~\ref{sec:serieseval} below for an alternative approach--also
+unlikely to be practical except for extremely large~$p$---that leads to a
+similar complexity bound.
 We can achieve a slightly worse but still subcubic
 complexity of $\OOtilde(n^{5/2})$
 by employing
@@ -737,6 +740,8 @@ and $x=1$), and then discuss their efficient evaluation.
 
 \subsection{Asymptotic series}
 
+\label{sec:series-asy}
+
 For fixed $|x| < 1$ or equivalently $x = \cos(\theta)$ with $0 < \theta < \pi$,
 an asymptotic expansion for $P_n(x)$ as $n \to \infty$
 can be given as \cite[Eq.~3.4]{Bogaert2012}
@@ -790,6 +795,8 @@ Algorithm~\ref{alg:hyprs} below to evaluate the series.
 
 \subsection{Expansion at zero}
 
+\label{sec:series-zero}
+
 If $n = 2d$ is even, the expansion of $P_n(x)$ on the monomial basis
 reads
 $$P_{2d}(x) = (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} = \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k,$$
@@ -821,6 +828,8 @@ is about $n \log_2\bigl(|x| + \sqrt{1 + |x|^2}\bigr)$ bits
 (which is at most $(\log_2 (1+\sqrt{2})) \, n \approx 1.27156n$).
 
 \subsection{Expansion at one}
+
+\label{sec:series-one}
 
 Expanding at $x = 1$ yields
 $$P_n(x) = \sum_{k=0}^n c_{n,k} u^k, \quad c_{n,k} = {n \choose k} {n+k \choose k}$$
@@ -895,6 +904,45 @@ Another technique for fast evaluation of hypergeometric series,
 binary splitting, would be useful when $p$ is large and the
 argument $x$ is a rational number with small numerator and denominator,
 but this case is not relevant for our application.
+
+Binary splitting also forms the basis of the bit-burst
+method~\cite[Section 4]{ChudnovskyChudnovsky1990}, which permits
+evaluating any fixed fixed hypergeometric series at any fixed point to
+absolute precision~$p$ in only~$\OOtilde(p)$ bit operations.
+Computing~$P_n(x)$ by this method would require $\OO(\log p)$ analytic
+continuation steps, each of which would entail two evaluations of
+general solutions of the Legendre differential equations, given by
+power series of radius of convergence $1 - |x|$ whose coefficients
+obey recurrences of order two.
+This is to be compared with a single series, given by a first-order
+recurrence and typically converging faster, for the expansions
+considered in Sections \ref{sec:series-asy}~to~\ref{sec:series-one}.
+Thus, the bit-burst method is unlikely to be competitive in the range
+of precision we are interested in, especially when the asymptotic
+series can be used.
+
+Nevertheless, it can be shown that the solutions with unit initial
+values at~$x_0$ of the Legendre equation have Taylor
+coefficients~$c_k$ at~$x_0$ bounded by
+$(n^2/(1-|x_0|))^{\OO(k)}$
+uniformly in $n$~and~$x_0$.
+% Proof sketch: The Legendre equation (in matrix form, say) is
+% majorized by something of the form
+%     g'(t) = O(n²)/(1-|x₀|-t) g(t)
+% whose solution has coefficients that grow like
+%     (n²/(1-|x₀|))^O(k).
+As a consequence, the cost of computing any individual root of
+$P_n(x)$ by the bit-burst method and Newton iteration is
+$\OOtilde(p) \, \log(n)^{\OO(1)}$.
+% Because we can get within O((1-|x|)/n²) of any root x_k by a single
+% evaluation of the series at 0 or 1 at a point of bit size
+% O(log(np)), and subsequent bit-burst steps will cost Õ(p)·log(n).
+For computing all the roots, this approach matches the $\OOtilde(np)$
+estimate of Theorem~\ref{thm:complexity}, while allowing for
+parallelization and requiring less memory.
+It may hence provide an alternative worth investigating to multipoint
+evaluation for precisions in the millions of bits.
+% Also: understand to what extend it applies to the asymptotic series?
 
 \begin{algorithm}[h!]
   %\algsetup{linenosize=\tiny}
