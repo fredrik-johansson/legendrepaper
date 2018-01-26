@@ -1,31 +1,33 @@
-\documentclass[11pt,a4paper]{article}
+%\documentclass[11pt,a4paper]{article}
+\documentclass{siamart0216}
 
 \usepackage[T1,T2A]{fontenc}
 \usepackage[utf8]{inputenc}
 %\usepackage{lmodern}
 \usepackage{amsmath}
-\usepackage{amsthm}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
-\usepackage[margin=1.1in]{geometry}
 \usepackage{hyperref}
+
+%\usepackage{amsthm}
+%\usepackage[margin=1.1in]{geometry}
 
 \DeclareUnicodeCharacter{00A0}{ }
 
-\newtheorem{example}{Example}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{remark}[theorem]{Remark}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{conjecture}[theorem]{Conjecture}
-\newtheorem{inequality}[theorem]{Inequality}
-\newtheorem{axiom}[theorem]{Axiom}
-\newtheorem{problem}[theorem]{Problem}
+%\newtheorem{example}{Example}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{remark}[theorem]{Remark}
+%\newtheorem{proposition}[theorem]{Proposition}
+%\newtheorem{corollary}[theorem]{Corollary}
+%\newtheorem{definition}[theorem]{Definition}
+%\newtheorem{conjecture}[theorem]{Conjecture}
+%\newtheorem{inequality}[theorem]{Inequality}
+%\newtheorem{axiom}[theorem]{Axiom}
+%\newtheorem{problem}[theorem]{Problem}
 
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
@@ -230,7 +232,8 @@ is a relatively simple application of the results
 in~\cite{petras1999computation} together with
 the interval Newton method~\cite{moore1979methods}.
 
-Our algorithm for evaluating Legendre polynomials switches between several methods.
+Our algorithm for evaluating Legendre polynomials switches between
+different methods.
 In Section~\ref{sec:recurrence},
 we prove practical error bounds for the standard three-term recurrence,
 which can be efficiently implemented
@@ -550,7 +553,7 @@ and therefore
 \[
   \abs{\delta_n}
   \leq [z^n] \left( \frac12 \frac{\bar \varepsilon}{(1-z)^3} \right)
-  = \frac{(n+1)(n+2)}{4} \, \bar \varepsilon. \qedhere
+  = \frac{(n+1)(n+2)}{4} \, \bar \varepsilon. \qed
 \]
 \end{proof}
 
@@ -1075,7 +1078,9 @@ currently seems to have limited practical value for this application.
 
 \subsection{Quadrature nodes}
 
-The Arb function \texttt{arb\_hypgeom\_legendre\_p\_ui\_root(x, w, n, k, p)}
+The function
+\texttt{arb\_hypgeom\_legendre\_p\_ui\_root(x, w, n, k, p)}
+in the Arb library
 sets the output variable
 $x$ to a ball containing the root of $P_n$ with index $k$ (we use the indexing
 $0 \le k < n$, with $k = 0$ giving the root closest to 1),
@@ -1126,10 +1131,11 @@ asymptotic development for both the nodes and the weights.
 
 We also note that we can compute 53-bit floating-point values
 with provably correct rounding in about the same time as the 64-bit
-values (for a ball with relative radius just larger than $2^{-64}$, there
+values, using Ziv's strategy of increasing the precision.
+For a ball with relative radius just larger than $2^{-64}$, there
 is less than a $1\%$ probability that the correct 53-bit rounding
 cannot be determined, in which case that particular node
-can be recomputed with a few more bits).
+can be recomputed with a few more bits.
 
 Fousse~\cite{fousse2007accurate} reports a few timings for smaller $n$ and high precision
 obtained on a 2.40 GHz AMD Opteron 250 CPU.
@@ -1234,12 +1240,12 @@ Node generation takes at most a few seconds for a first integration
 at 1000-digit precision
 and a few milliseconds for 100-digit precision.
 
-\section{Gauss-Legendre versus Clenshaw-Curtis and double exponential quadrature}
+\section{Gauss-Legendre versus Clenshaw-Curtis and the double exponential method}
 
 \label{sec:vsothers}
 
-In recent years, the Clenshaw-Curtis and double exponential (tanh-sinh) quadrature schemes
-have received considerable attention as alternatives to Gauss-Legendre
+The Clenshaw-Curtis and double exponential (tanh-sinh) quadrature schemes
+have received much attention as alternatives to Gauss-Legendre
 quadrature for numerical integration with very high precision~\cite{bailey2011high,trefethen2008gauss}.
 Both schemes
 typically require a constant factor more evaluation points than Gauss-Legendre rules
@@ -1247,11 +1253,11 @@ for equivalent accuracy, but the nodes and weights are easier to compute.
 Gauss-Legendre quadrature is therefore the best choice
 when the integrand is expensive to evaluate or when nodes can
 be precomputed for several integrations.
-It is of some interest to give an empirical comparison.
+It is of some interest to compare the relative costs empirically.
 
 Here we assume an analytic integrand with singularities well isolated from the
 the finite path of integration so that Gauss-Legendre quadrature is a good
-choice to begin with; as observed in~\cite{trefethen2008gauss},
+choice to begin with. As observed in~\cite{trefethen2008gauss},
 Clenshaw-Curtis often converges with identical rate to Gauss-Legendre for
 less well-behaved integrands,
 and the double exponential method is far superior to either
@@ -1363,7 +1369,7 @@ to obtain large-$n$ asymptotic expansions with suitable error bounds.
 
 We thank Bruno Salvy for pointing out Petras' paper~\cite{petras1999computation}.
 
-\bibliographystyle{plain}
+\bibliographystyle{siamplain}
 \bibliography{references}
 
 
