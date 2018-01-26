@@ -84,7 +84,7 @@ in \eqref{eq:generating-series} are $e^{\pm i \theta} = x \pm i y$.
 Like other families of orthogonal polynomials, Legendre polynomials
 satisfy a three-term recurrence, in this case the relation
 \begin{equation} \label{eq:recurrence}
-  (n + 1) P_{n+1}(x) - (2n - 1) x P_n(x) + n P_{n-1}(x) = 0,
+  (n + 1) P_{n+1}(x) - (2n + 1) x P_n(x) + n P_{n-1}(x) = 0,
 \end{equation}
 also known as Bonnet's formula, and a mixed relation
 \begin{equation} \label{eq:mixed}
@@ -137,7 +137,8 @@ Indeed, $P_n$ becomes highly oscillatory for
 large $n$ and hence presents difficulties
 for naive root-finding and polynomial evaluation methods.
 The classical Golub-Welsch algorithm avoids accuracy problems
-by formulating the task of computing the nodes as an eigenvalue problem~\cite{golub1969calculation},
+by formulating the task of computing the nodes as
+finding the eigenvalues of a tridiagonal matrix~\cite{golub1969calculation},
 but this approach is too slow to be practical for large~$n$.
 
 Work by several authors in the last decade has led to asymptotic methods
@@ -784,7 +785,7 @@ We therefore need about $2n\sqrt{\max(0,-u)} / \log(2)$ bits
 of increased precision when evaluating the series.
 
 We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
-involves a division by $1-x^2$, it is useful to evaluate
+involves a division by $1-x^2$, it is useful to
 evaluate $P'_n$ directly when $x$ is close to 1.
 We have
 $P'_n(x) = \sum_{k=0}^{n-1} c'_{n,k} u^k$
@@ -1170,10 +1171,10 @@ $n$ & ARPREC & Our code &
 \end{tabular}
 \caption{Left columns: time in seconds to generate 1000-digit
 quadrature rules for the degrees~$n$ used by ARPREC.
-Right columns: for three different integrals, the quadrature
-error
-and the time to evaluate the degree-$n$ approximation
-given precomputed nodes.}
+Right columns: for three different integrals, the
+error $|\int_{-1}^1 f(x) dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
+quadrature rule, and the time to evaluate this degree-$n$ approximation
+of the integral at 1000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
 \label{tab:arprectimings}
 \end{centering}
 \end{table}
@@ -1191,7 +1192,7 @@ $2^{-8}$ & 3977 & $0.14$ & $10^{-814}$ & 0.25 & $10^{-909}$ & 1.75 & $10^{-630}$
 $2^{-9}$ & 7955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\varepsilon$ & 25.1
 \end{tabular}
 \caption{Left columns: step sizes $h$, number of evaluation
-points, and time to compute nodes for double exponential quadrature
+points, and time to compute nodes for double exponential quadrature with Arb
 at 1000-digit precision. Right columns: error and evaluation
 time given precomputed nodes.}
 \label{tab:dequad}
@@ -1327,7 +1328,7 @@ extreme-precision calculations -- i.e., several thousand digits or
 more -- the cost of computing them
 even once becomes prohibitive''.
 
-Here, the quadratic dependence refers to the number of arithmetic operations.
+In this quote, ``quadratic dependence'' refers to the number of arithmetic operations.
 We may remark that using asymptotic expansions in the
 evaluation of Legendre polynomials avoids the quadratic
 dependence on~$n$ for fixed precision $p$, and Theorem~\ref{thm:complexity}
@@ -1342,10 +1343,11 @@ hardly is practical, our main algorithm does achieve a
 significant speedup for practical $p$ and $n$
 which allows us to compute Gauss-Legendre quadrature rules for
 1000-digit integration in 1-2 seconds and for 10000-digit integration in 10-20 minutes
-on a single core (with trivial parallelization since all roots
-are computed independently). This is not prohibitively
+on a single core. This is not prohibitively
 expensive compared to the repeated evaluation
 of typical integrands, especially if several integrations are needed.
+Parallelization is also trivial since all roots
+are computed independently.
 
 A natural extension of this work would be to
 consider Gaussian quadrature rules for different
