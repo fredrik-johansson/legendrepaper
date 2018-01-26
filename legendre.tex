@@ -36,6 +36,11 @@
 \newcommand{\abs}[1]{\mathopen| #1 \mathclose|}
 \newcommand{\ddz}{\frac{d}{dz}}
 
+
+\newcommand{\OO}{\mathcal{O}}
+\newcommand{\OOtilde}{\widetilde{\mathcal{O}}}
+\newcommand{\MM}{\mathcal{M}}
+
 \begin{document}
 
 \title{Fast and rigorous arbitrary-precision evaluation of Legendre
@@ -114,7 +119,7 @@ hundreds of digits, and occasionally even tens of
 thousands of digits~\cite{bailey2011high}.
 The Gauss-Legendre formula is especially well suited for
 integration of smooth functions without endpoint singularities, where it
-achieves an accuracy of $p$ bits with $n = O(p)$ evaluation points.
+achieves an accuracy of $p$ bits with $n = \OO(p)$ evaluation points.
 
 Indeed, it is well known that~\eqref{eq:glquad} is nearly optimal among
 all quadrature rules for integrands that are
@@ -145,15 +150,15 @@ but this approach is too slow to be practical for large~$n$.
 
 Work by several authors in the last decade has led to asymptotic methods
 that permit computing any individual node and weight for arbitrarily large $n$
-in ``$O(1)$'' time, culminating in the 2014 paper by Bogaert \cite{bogaert2014iteration}.
+in $\OO(1)$ time, culminating in the 2014 paper by Bogaert \cite{bogaert2014iteration}.
 For a review of this progress, see Townsend~\cite{townsend2015race}.
-Of course, the ``$O(1)$'' bound assumes that a fixed
+Of course, the ``$\OO(1)$'' bound assumes that a fixed
 level of precision is used. In the prevailing literature
 this generally means 53-bit IEEE 754 floating-point arithmetic.
 As mentioned earlier, certain applications require
 considering $p \sim n$ where~$p$ is the precision in bits,
 which potentially can be in the thousands.
-In addition, the available ``$O(1)$'' implementations rely in part
+In addition, the available $\OO(1)$ implementations rely in part
 on heuristic error estimates without rigorously proved bounds.
 
 The literature on arbitrary precision or rigorous evaluation
@@ -178,33 +183,33 @@ but did not study fast methods for large $n$.
 
 If we assume that the precision $p$ varies,
 then it is clear that any node and weight
-can be computed to $p$-bit accuracy in $\widetilde{O}(n p)$ time
-by performing $O(\log p)$ Newton iterations \eqref{eq:newton}
+can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time
+by performing $\OO(\log p)$ Newton iterations \eqref{eq:newton}
 from an appropriate initial value.
 As a consequence, the
-full set of degree-$n$ quadrature nodes of weights
-can be computed in $\widetilde{O}(n^2 p)$ time.
+full set of degree-$n$ quadrature nodes and weights
+can be computed in $\OOtilde(n^2 p)$ time.
 For numerical integration of analytic functions
 where we typically have $p \sim n$, a better (indeed, optimal) estimate
-than the classical $\widetilde{O}(n^3)$ bound is possible:
+than the classical $\OOtilde(n^3)$ bound is possible:
 
 \begin{theorem}
 \label{thm:complexity}
 If $p \sim n$, then the Gauss-Legendre nodes of degree $n$ can be computed to
-$p$-bit accuracy in $\widetilde{O}(n^2)$ (equivalently, $\widetilde{O}(p^2)$) bit operations.
+$p$-bit accuracy in $\OOtilde(n^2)$ (equivalently, $\OOtilde(p^2)$) bit operations.
 \end{theorem}
 
 \begin{proof}
 (Sketch.)
 Using the formulas in~\cite{petras1999computation},
 we can compute good initial values for Newton iteration
-in $\widetilde{O}(n)$ bit operations.
+in $\OOtilde(n)$ bit operations.
 The Newton iteration can be performed for all roots
 simultaneously using fast multipoint evaluation, which costs
-$\widetilde{O}(n p)$ bit operations.
+$\OOtilde(n p)$ bit operations.
 Fast multipoint evaluation is numerically unstable and
-generically loses $O(n)$ bits of accuracy, but we can compensate for
-this loss by using $O(n)$ guard bits
+generically loses $\OO(n)$ bits of accuracy, but we can compensate for
+this loss by using $\OO(n)$ guard bits
 (since $p \sim n$ by assumption, this does not change the asymptotic complexity estimate)~\cite{kobel2013fast}.
 \end{proof}
 
@@ -216,7 +221,7 @@ in practice. Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
 makes parallelization difficult.
 We can achieve a slightly worse but still subcubic
-complexity of $\widetilde{O}(n^{5/2})$
+complexity of $\OOtilde(n^{5/2})$
 by employing
 fast multipoint evaluation in a completely different way
 to compute $P_n$ values in isolation,
@@ -255,11 +260,11 @@ to some previous implementations
 as well as the asymptotically fast algorithm in Theorem~\ref{thm:complexity}.
 
 For computing Gauss-Legendre nodes and weights with $n \sim p$,
-our algorithm has an asymptotic complexity of $\widetilde{O}(n^3)$ like
+our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
 classical methods. However, our algorithm has much lower overhead,
 and for parameters $p, n < 10^5$ which are most relevant to applications,
 the observed running time is effectively subcubic.
-Furthermore, if $p = O(1)$, the complexity reduces to $\widetilde{O}(n)$
+Furthermore, if $p = \OO(1)$, the complexity reduces to $\OOtilde(n)$
 as in the machine-precision implementations by Bogaert and others.
 
 Finally, Section~\ref{sec:vsothers} reviews the viability of Gauss-Legendre
@@ -288,7 +293,7 @@ restrict to $0 \le x \le 1$.
 Some authors suggest working with $P_n(\cos(\theta))$ instead of $P_n(x)$
 directly to improve numerical stability for $x$ close to 1, but
 this is not necessary in arbitrary-precision arithmetic since
-a slight precision increase (of the order $O(\log n)$ bits)
+a slight precision increase (of the order $\OO(\log n)$ bits)
 works as well.
 
 Note that, for rigorous evaluation of $P_n(z)$ with complex $z$
@@ -371,7 +376,7 @@ when $x$ is close to~$1$.
 
 At $p$-bit precision, it is sufficient to choose algorithms
 and internal evaluation parameters to target
-an absolute error of about $2^{-p}$, or more precisely $2^{-p-O(\log n)}$
+an absolute error of about $2^{-p}$, or more precisely $2^{-p-\OO(\log n)}$
 for a relative error of about $2^{-p}$ measured with respect
 to monotone envelopes for $P_n(x)$ and $P'_n(x)$ as in~\cite{Bogaert2012}.
 The relative error of a computed ball for $P_n(x)$ where $x$ is near a zero $x_k$
@@ -388,8 +393,8 @@ higher precision as needed.
 For small $n$, a straightforward way to compute~$P_n(x)$ is to apply
 Bonnet's three-term recurrence \eqref{eq:recurrence},
 starting from $P_0(x)=1$ and $P_1(x) = x$.
-Computing~$P_n(x)$ by this method takes about $(M(t) + O(t))\, n$
-bit operations, where $t$ is the working precision and $M(t)$ denotes the
+Computing~$P_n(x)$ by this method takes about $(\MM(t) + \OO(t))\, n$
+bit operations, where $t$ is the working precision and $\MM(t)$ denotes the
 cost of $t$-bit multiplication.
 It is thus attractive for small $n$ and $t$, especially when both
 $P_n(x)$ and $P'_n(x)$ are needed, since we can get $P_{n-1}(x)$ at no
@@ -397,7 +402,7 @@ additional cost.
 
 In a direct implementation of this recurrence in ball arithmetic, the
 width of the enclosures would roughly double at every iteration,
-requiring to increase the internal working precision by $O(n)$ bits.
+requiring to increase the internal working precision by $\OO(n)$ bits.
 We avoid this issue by performing a pen-and-paper round-off error
 analysis of the evaluation that yields a less pessimistic bound on the
 accumulated error.
@@ -812,21 +817,21 @@ We use rectangular splitting~\cite{Smith1989,Johansson2014rectangular}
 for fast evaluation of hypergeometric series with
 rational parameters where the argument $x$ is a high-precision number.
 This reduces evaluating a $K$-term series to
-$O(K)$ cheap scalar operations (additions and multiplications or divisions
+$\OO(K)$ cheap scalar operations (additions and multiplications or divisions
 by small integer coefficients)
 and about $2\sqrt{K}$ expensive nonscalar operations (general multiplications),
 whereas direct evaluation of the hypergeometric
-recurrence requires $O(K)$ expensive operations.
+recurrence requires $\OO(K)$ expensive operations.
 
 Due to the scalar operations, rectangular splitting ultimately
-requires $O(K)$ arithmetic operations with $\widetilde{O}(p)$ bit complexity
+requires $\OO(K)$ arithmetic operations with $\OOtilde(p)$ bit complexity
 each
 just like straightforward evaluation of the recurrence, so it is
 not a genuine asymptotic improvement, but
 it is an improvement in practice and
 can give more than a factor 100 speedup at very high precision.
 It is possible to genuinely reduce the complexity of evaluating
-a hypergeometric sequence to $O(\sqrt{K} \log(K))$ arithmetic
+a hypergeometric sequence to $\OO(\sqrt{K} \log(K))$ arithmetic
 operations using a baby-step giant-step method
 that employs fast multipoint evaluation,
 but in practice rectangular splitting
@@ -1045,24 +1050,24 @@ if we used a similarly optimized fixed-point implementation
 for the hypergeometric series.
 
 When $p$ is fixed (top left in Figure~\ref{fig:benchplot}), the main algorithm is
-a factor $O(n)$ faster
+a factor $\OO(n)$ faster
 than the three-term recurrence
 since the asymptotic expansion converges to sufficient accuracy after
-$O(1)$ terms for all sufficiently large $n$.
+$\OO(1)$ terms for all sufficiently large $n$.
 With the constant precision $p = 64$,
 the main algorithm is 3.0
 times faster for $n = 10^3$ and 30 times faster for $n = 10^4$.
 Conversely, fast multipoint evaluation
-with constant $p$ is a factor $O(n)$ slower due to the $O(n)$ extra precision.
+with constant $p$ is a factor $\OO(n)$ slower due to the $\OO(n)$ extra precision.
 
 When $p \sim n$ (the three remaining plots in Figure~\ref{fig:benchplot}), the main algorithm
-appears to show the same $O(n)$ speedup
+appears to show the same $\OO(n)$ speedup
 over the three-term recurrence after the crossover point, at least initially.
 This speedup should level off asymptotically, but
 in practice this only occurs for $n$ larger than $10^4$
 where we have already gained a factor 10 or more.
 
-Fast multipoint evaluation gives a true asymptotic $O(n)$ speedup,
+Fast multipoint evaluation gives a true asymptotic $\OO(n)$ speedup,
 but since it has much higher overhead,
 it only starts to give an improvement over
 the main algorithm from $n \approx 10^4$
@@ -1164,7 +1169,7 @@ $n$ & ARPREC & Our code &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
     \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\
    &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
-12 & 0.00520 & 0.000735 & $10^{-14}$ &       &   $10^{-1}$ &  &  $10^{-8}$ & \\
+\rule{0pt}{3ex}12 & 0.00520 & 0.000735 & $10^{-14}$ &       &   $10^{-1}$ &  &  $10^{-8}$ & \\
 24 & 0.0189 & 0.00197 & $10^{-28}$  &       &  $10^{-9}$  & &  $10^{-17}$ & \\
 48 & 0.0629 & 0.00574 & $10^{-56}$ &        &  $10^{-34}$  &    &  $10^{-36}$ & \\
 96 & 0.251 & 0.0185 & $10^{-111}$  &         &  $10^{-105}$ &          &  $10^{-73}$ & \\
@@ -1193,7 +1198,7 @@ $h$ & $2n+1$ & Time &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
     \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\ 
    &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
-$2^{-7}$ & 1989 & $0.07$ & $10^{-407}$ & 0.12 & $10^{-423}$ & 0.93 & $10^{-314}$ & 6.3 \\
+\rule{0pt}{3ex}$2^{-7}$ & 1989 & $0.07$ & $10^{-407}$ & 0.12 & $10^{-423}$ & 0.93 & $10^{-314}$ & 6.3 \\
 $2^{-8}$ & 3977 & $0.14$ & $10^{-814}$ & 0.25 & $10^{-909}$ & 1.75 & $10^{-630}$ & 13.0 \\
 $2^{-9}$ & 7955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\varepsilon$ & 25.1
 \end{tabular}
@@ -1266,7 +1271,7 @@ analytic integrands with endpoint singularities.
 
 Clenshaw-Curtis quadrature uses the Chebyshev nodes
 $\cos(\pi k / n), 0 \le k \le n$, and the corresponding weights can be expressed
-by a discrete cosine transform which takes $O(n \log n)$
+by a discrete cosine transform which takes $\OO(n \log n)$
 arithmetic operations to compute by FFT.
 As a rule of thumb, $2n$-point Clenshaw-Curtis quadrature
 gives the same accuracy as $n$-point Gauss-Legendre quadrature
@@ -1291,8 +1296,8 @@ One generally chooses the discretization parameter as $h = 2^{-j}$ so that
 both the evaluation points and weights can be recycled for successive levels
 $j = 1, 2, 3\ldots$, and $n$ is chosen so that the tail of the
 infinite series is smaller than $2^{-p}$.
-The $2n+1$ nodes and weights can be computed with $n + O(1)$
-exponential function evaluations and $O(n)$ arithmetic operations.
+The $2n+1$ nodes and weights can be computed with $n + \OO(1)$
+exponential function evaluations and $\OO(n)$ arithmetic operations.
 Double exponential quadrature with $Cn$ evaluation points
 typically achieves the same accuracy as $n$-point Gauss-Legendre quadrature,
 where $C$ is slightly larger than
@@ -1365,7 +1370,7 @@ and satisfy three-term recurrence relations.
 The main obstacle might be
 to obtain large-$n$ asymptotic expansions with suitable error bounds.
 
-\paragraph*{Acknowledgements.}
+\paragraph*{Acknowledgements}
 
 We thank Bruno Salvy for pointing out Petras' paper~\cite{petras1999computation}.
 
