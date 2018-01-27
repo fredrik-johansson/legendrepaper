@@ -434,10 +434,9 @@ accumulated a denominator of the size of a machine word.
     \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.625 \, (n+1)(n+2) + 1) \, 2^{-t}$
   \end{algorithmic}
 \begin{verbatim}
-void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t)
-{
-    mpz_t tmp;  int k;  mpz_init(tmp);
-    unsigned long d = 1;
+void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {
+    mpz_t tmp; int k; mpz_init(tmp);
+    mp_limb_t denlo, den = 1;
     mpz_set_ui(p, 1);
     mpz_mul_2exp(p, p, t);
     mpz_set(q, x);
@@ -447,12 +446,13 @@ void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t)
         mpz_mul_si(p, p, -k*k);
         mpz_addmul_ui(p, tmp, 2*k+1);
         mpz_swap(p, q);
-        d *= k;
-        if (d >= (1ul << (GMP_LIMB_BITS - BIT_COUNT(n)))) {
-          mpz_tdiv_q_ui(p, p, d);   mpz_tdiv_q_ui(q, q, d);  d = 1;
-        }
+        if (mpn_mul_1(&denlo, &den, 1, k+1)) {
+            mpz_tdiv_q_ui(p, p, den);
+            mpz_tdiv_q_ui(q, q, den);
+            den = k+1;
+        } else den = denlo;
     }
-    mpz_tdiv_q_ui(p, p, d);  mpz_tdiv_q_ui(q, q, d*n);
+    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);
     mpz_clear(tmp);
 }
 \end{verbatim}
@@ -553,17 +553,17 @@ Suppose that $x = \hat x \, 2^{-t}$ for some $t \geq 0$ and
 $\hat x \in \mathbb Z$.
 The sequence $(p_n)_{n \geq 0}$ defined by \eqref{eq:rec-fxpt}
 satisfies
-\[
+\begin{equation} \label{eq:bound-fxprec}
   \abs{ \hat p_n 2^{-t} - p_n }
   \leq 0.75 \, (n+1) (n+1) \, 2^{-t},
   \qquad
   n \geq 0.
-\]
-The quantities $p$, $q$ returned by Algorithm~\ref{alg:gmprec}
-satisfy
+\end{equation}
+Furthermore, the quantities $p$, $q$ returned by Algorithm~\ref{alg:gmprec}
+are such that
 \begin{equation} \label{eq:bound-gmprec}
   |p - 2^t P_{n-1}(x)|, |q - 2^t P_{n}(x)|
-  \le 0.625 (n+1)(n+2) + 1.
+  \le 0.75 (n+1)(n+2) + 1.
 \end{equation}
 \end{corollary}
 
@@ -585,66 +585,81 @@ hence
 where $\abs{\varepsilon_n} \leq 3$.
 Proposition \ref{prop:rec-error} applied to
 $\tilde p_n = \hat p_n \, 2^{-t}$
-then provides the desired bound.
+then provides the bound~\eqref{eq:bound-fxprec}.
 
 \newcommand{\vp}{\mathtt p}
 \newcommand{\vq}{\mathtt q}
 \newcommand{\vd}{\mathtt d}
 
 Turning to Algorithm~\ref{alg:gmprec},
-let $\vp_k$, $\vq_k$, $\vd_k$ denote the values of the variables
-$\vp$, $\vq$, $\vd$ at the end of iteration~$k$,
-and $\vp_0$, $\vq_0$, $\vd_0$ their values before the loop.
+let $\vp_0$, $\vq_0$, $\vd_0$ denote the values of the variables
+$\vp$, $\vq$, $\mathtt{den}$ before the loop,
+and $\vp_k$, $\vq_k$, $\vd_k$ their values at the end of iteration~$k$.
 Consider the sequence
-$\tilde p_k = \vq_{k-1} 2^{-t}/(k \vd_{k-1})$, $k \geq 1$,
+$\tilde p_k = 2^{-t} \vq_{k-1}/\vd_{k-1}$, $k \geq 1$,
 extended by $\tilde p_0 = 1$ and an arbitrary~$\tilde p_{-1}$.
-For all $k \geq 1$,
-depending whether the conditional branch is taken, we have either
-\begin{align*}
+For all $k \geq 1$, depending whether the conditional branch is taken, we
+have one of the systems of equations
+\begin{align}
   \vp_k &= \vq_{k-1}, &
   \vq_k &= (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor
           - k^2 \vp_{k-1}, &
-  \vd_k &= k \vd_{k-1} \\
-\intertext{or}
-  \vp_k &= \left\lceil \frac{\vq_{k-1}}{k \vd_{k-1}} \right\rfloor, &
+  \vd_k &= (k+1) \vd_{k-1} \\
+  \vp_k &= \left\lceil \frac{\vq_{k-1}}{\vd_{k-1}} \right\rfloor, &
   \vq_k &= \left\lceil \frac{
           (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor - k^2 \vp_{k-1}}
-          {k \vd_{k-1}} \right\rfloor, &
-  \vd_k &= 1.
-\end{align*}
-In both cases, for some $\alpha_k, \beta_k, \gamma_k$ with
-$|\alpha_k|, |\beta_k|, |\gamma_k| \leq 1$, we have
+          {\vd_{k-1}} \right\rfloor, &
+  \vd_k &= k+1.
+\end{align}
+% either
+% \begin{align*}
+%   \vp_k &= \vq_{k-1}, &
+%   \vq_k &= (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor
+%           - k^2 \vp_{k-1}, &
+%   \vd_k &= (k+1) \vd_{k-1} \\
+% \intertext{or}
+%   \vp_k &= \left\lceil \frac{\vq_{k-1}}{\vd_{k-1}} \right\rfloor, &
+%   \vq_k &= \left\lceil \frac{
+%           (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor - k^2 \vp_{k-1}}
+%           {\vd_{k-1}} \right\rfloor, &
+%   \vd_k &= k+1.
+% \end{align*}
+In both cases, we can write
 \begin{align*}
   \frac{\vp_k}{\vd_k}
-  &= \frac{\vq_{k-1}}{k \vd_{k-1}} + \alpha_k
-   = \tilde p_k + \alpha_k, &
+  &= \frac{\vq_{k-1}}{(k+1) \vd_{k-1}} + \frac{\alpha_k}{k+1}
+   % = \tilde p_k + \alpha_k, &
+   &
   \frac{\vq_k}{\vd_k}
   &= \frac{ (2k+1) (x \vq_{k-1} + \beta_k) - k^2 \vp_{k-1} }
-          { k \vd_{k-1} }
-     + \gamma_k
+          { (k+1) \vd_{k-1} }
+     + \frac{\gamma_k}{k+1}
 \end{align*}
-and hence
+with $|\alpha_k|, |\beta_k|, |\gamma_k| \leq 1$.
+The first equation implies
+$k 2^{-t} \vp_{k-1}/\vd_{k-1} = \tilde p_{k-1} + \alpha_{k-1} 2^{-t}$
+for $k \geq 2$.
+Since the latter equality also holds for $k = 1$ with $\alpha_0 = 0$, we can
+substitute it in the second equation, yielding
 \[
   \tilde p_{k+1}
-  = \frac{\vq_k 2^{-t}}{(k+1) \vd_k}
+  = \frac{\vq_k}{\vd_k} 2^{-t}
   = \frac{ (2k+1) x \tilde p_k - k \tilde p_{k-1} }{k+1}
-     + \left(
-        - \frac{k}{k+1} \alpha_k
-        + \frac{2k + 1}{k (k+1) \vd_{k-1}} \beta_k
-        + \frac{1}{k+1} \gamma_k
-       \right) 2^{-t}.
+     + 2^{-t} \left(
+          \frac{-k \alpha_{k-1}}{k+1}
+        + \frac{(2k + 1) \beta_k}{(k+1) \vd_{k-1}}
+        + \frac{\gamma_k}{k+1}
+       \right).
 \]
-The same equality holds for $k=0$, with
-$\alpha_0 = \beta_0 = \gamma_0 = 0$.
-Thus, $\tilde p_k$ satisfies~\eqref{eq:rec-pert} with
-$\bar\varepsilon = 2.5 \cdot 2^{-t}$, and we have
-$|\tilde p_k - P_k(x)| \leq 0.625 (k+1)(k+2) 2^{-t}$
-by Proposition \ref{prop:rec-error}.
+This relation holds for $k \geq 1$, and we extend it to $k=0$ by setting
+$\beta_0 = \gamma_0 = 0$.
+Thus, $\tilde p_k$ also satisfies~\eqref{eq:rec-pert} with
+$\bar\varepsilon = 3 \cdot 2^{-t}$, and Proposition \ref{prop:rec-error} applies.
 The final values of $\vq$~and~$\vp$ are respectively
 $\lceil 2^t \tilde p_n \rfloor$
 and
-$\lceil \vp_{n-1}/\vd_{n-1} \rfloor
-= \lceil \tilde 2^t \tilde p_{n-1} + \alpha_{n-1} \rfloor$,
+$\lceil n \vp_{n-1}/\vd_{n-1} \rfloor
+= \lceil 2^t \tilde p_{n-1} + \alpha_{n-1} \rfloor$,
 whence the bound~\eqref{eq:bound-gmprec}.
 \end{proof}
 
