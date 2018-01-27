@@ -65,14 +65,13 @@ of orthogonal polynomials with respect to the unit weight
 on the interval $(-1,1)$, normalized so that $P_n(1) = 1$.
 A more concrete definition is by the generating series
 \begin{equation} \label{eq:generating-series}
-  \sum_{n=0}^{\infty} P_n(x) z^n
+  F(x, z)
+  = \sum_{n=0}^{\infty} P_n(x) z^n
   = \frac{1}{\sqrt{1 - 2 x z + z^2}}.
 \end{equation}
 It is often convenient to introduce auxiliary
 variables~$\theta \in [0, \pi]$ and $y \in [0, 1]$ defined by
-$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$,
-where one might note that the roots of the polynomial $1 - 2 x z + z^2$ appearing
-in \eqref{eq:generating-series} are $e^{\pm i \theta} = x \pm i y$.
+$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$.
 
 Like other families of orthogonal polynomials, Legendre polynomials
 satisfy a three-term recurrence, in this case the relation
@@ -309,32 +308,99 @@ bound
 to separately bound the propagated error.
 Similarly, we use a bound for $P''_n$ to compute a reasonably
 tight enclosure for $P'_n([m \pm r])$.
-Suitable bounds are given in the next lemma.
+Suitable bounds are given in Proposition~\ref{prop:prop-bound} below.
 
-\begin{lemma} \label{lemma:prop-bound}
-For $-1 \leq x \leq 1$, we have
-\begin{align}
-\label{eq:prop-bound}
-  |P_n'(x)| &\le \min\left(\frac{n(n+1)}{2},
-                          \frac{n}{\sqrt{1-x^2}}\right), \\
-\label{eq:prop-bound1}
-  |P_n''(x)| &\le \min\left(\frac{(n+2)(n+1)n(n-1)}{8},
-                           \frac{2|x||P_n'(x)| + n(n+1)}{1-x^2}\right).
-\end{align}
+\begin{lemma} \label{lemma:majorants}
+Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
+series $f(z)$, and write $f(z) \ll_z \hat f(z)$ if
+$| [z^n] f(z) | \leq [z^n] \hat f(z)$ for all $n$.
+If $f$, $g$, $\hat f$, $\hat g$ are such that
+$f(z) \ll_z \hat f(z)$ and $g(z) \ll_z \hat g(z)$, then we also have
+$\int_0^z f \ll_z \int_0^z \hat f$ and
+$f(z)g(z) \ll_z \hat f(z) \hat g(z)$.
 \end{lemma}
 
-\begin{proof}
-%$$|p^{(d)}(x)| \le \left(\frac{2n}{\sqrt{1-x^2}}\right)^d$$
-%Markov: $$|p^{(d)}(x)| \le (n(n-1)\cdots(n-d+1))^2$$
+\begin{proposition} \label{prop:prop-bound}
+The following bounds hold for $-1 \leq x \leq 1$:
+\begin{align}
+\label{eq:prop-bound}
+  |P_n'(x)| &\le \min\left(
+      \frac{2^{3/2}}{\sqrt{\pi}} \frac{\sqrt n}{(1-x^2)^{3/4}},
+      \frac{n(n+1)}{2}
+  \right), \\
+\label{eq:prop-bound1}
+  |P_n''(x)|
+  &\le \min\left(
+      \frac{2^{5/2}}{\sqrt{\pi}} \frac{n^{3/2}}{(1-x^2)^{5/4}},
+      \frac{(n-1) n (n+1) (n+2)}{8}
+  \right).
+\end{align}
+\end{proposition}
 
-Using the Bernstein inequality (see \cite{borwein2012polynomials}, chapter 5)
-and the fact that $|P^{(d)}_n(x)| \le |P^{(d)}_n(1)|$ for $-1 \le x \le 1$,
-we have~\eqref{eq:prop-bound}
-and contiguous relations yield~\eqref{eq:prop-bound1}.
+\begin{proof}
+Let $F(x, z)$ be the generating series~\eqref{eq:generating-series}, and write
+\[
+  \sum_{n=0}^{\infty} P'_n(x) z^n
+  = \frac{\mathrm d F(x, z)}{\mathrm d x}
+  = \frac{z F(x, z)}{1 - 2 x z + z^2},
+  \qquad
+  \sum_{n=0}^{\infty} P''_n(x) z^n
+  = \frac{3 z^2 F(x, z)}{(1 - 2 x z + z^2)^2}.
+\]
+Set $\theta = \arccos x$, so that the roots of $1 - 2 x z + z^2$
+are $e^{\pm i \theta}$.
+Then, in the notation of Lemma~\ref{lemma:majorants}, we have the bound
+\[ \frac{1}{1 - 2 x z + z^2}
+   = \frac{1}{2 i \sin \theta} \left( \frac{1}{z - e^{i \theta}} -
+                                      \frac{1}{z - e^{-i \theta}} \right)
+   = \sum_{n=0}^{\infty} \frac{\sin\bigl((n+1) \theta\bigr)}{\sin(\theta)} z^n
+   \ll_z \frac{\sin(\theta)^{-1}}{1 - z}. \]
+In addition, Bernstein's inequality for the Legendre polynomials
+(see, e.g.,~\cite{ChowGatteschiWong1994})
+combined with the logarithmic convexity of the Gamma function yields
+\[ |P_n(x)| \leq \frac{\sqrt{2}}{\sqrt{\pi}} \frac{1}{\sqrt{\sin \theta}}
+                 \frac{1}{\sqrt{n+1/2}}
+            \leq \frac{\sqrt 2}{\sqrt{\pi}} \frac{1}{\sqrt{\sin \theta}}
+                 \frac{\Gamma(n+1/2)}{\Gamma(n+1)},
+\]
+and hence
+\[ F(x, z) \ll_z \frac{\sqrt{2}}{\sqrt{\sin \theta}}
+               \sum_{n=0}^{\infty} \frac{1}{\sqrt{\pi}}
+                                  \frac{\Gamma(n+1/2)}{\Gamma(n+1)} z^n
+            = \frac{\sqrt{2}}{\sqrt{\sin \theta}}
+              \frac{1}{\sqrt{1-z}}. \]
+By Lemma~\ref{lemma:majorants}, these bounds combine into
+\[ \frac{\mathrm d F}{\mathrm d x}
+   \ll_z \frac{\sqrt{2}}{\sin(\theta)^{3/2}} \frac{1}{(1-z)^{3/2}},
+   \qquad
+   \frac{\mathrm d^2 F}{\mathrm d x^2}
+   \ll_z \frac{\sqrt{2}}{\sin(\theta)^{5/2}} \frac{3 z^2}{(1-z)^{5/2}}. \]
+Since
+$[z^n] (1 - z)^{- k - 1/2} = \Gamma(n + 1/2)/(\Gamma(k+1/2) \Gamma(n - k + 1))$
+and using again the logarithmic convexity of~$\Gamma$, we conclude
+that
+\[ |P'_n(x)| \leq \frac{\sqrt{2}}{\sin(\theta)^{3/2}}
+                  \frac{2}{\sqrt{\pi}} \frac{\Gamma(n+1/2)}{\Gamma(n)}
+             \leq \frac{2^{3/2}}{\sqrt{\pi}} \frac{\sqrt n}{\sin(\theta)^{3/2}},
+   \qquad
+   |P''_n(x)| \leq \frac{2^{5/2}}{\sqrt{\pi}} \frac{n^{3/2}}{(1-x^2)^{5/4}}.
+\]
+The result follows since all derivatives of Legendre polynomials reach
+their maximum at~$x=1$ (or by using the bounds
+$(z - e^{\pm i \theta})^{-1}, F(x, z) \ll_z (1-z)^{-1}$
+and Lemma~\ref{lemma:majorants}).
 \end{proof}
 
-Thus, from now on, we assume that $x$~is a floating-point number with
-$0 \leq x \leq 1$.
+\begin{remark}
+By the same reasoning, the inequality
+\[ |P^{(k)}_n(x)| \leq \frac{2^{k+1/2}}{\sqrt{\pi}}
+                       \frac{n^{k-1/2}}{(1 - x^2)^{(2n+1)/4}} \]
+actually holds for all~$k$. Unfortunately, it seems to
+overestimate~$|P^{(k)}|$ by a factor about~$2^k$.
+\end{remark}
+
+Based on these reductions, we assume from now on that $x$~is a
+floating-point number with $0 \leq x \leq 1$.
 Our main algorithm for evaluating~$P_n$ at~$x$ combines the following
 methods:
 \begin{itemize}
@@ -431,7 +497,7 @@ accumulated a denominator of the size of a machine word.
   \label{alg:gmprec}
   \begin{algorithmic}[1]
     \Require An integer $x$ and $t \ge 0$ such that $|2^{-t} x| \le 1$, and $n \ge 1$
-    \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.625 \, (n+1)(n+2) + 1) \, 2^{-t}$
+    \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.75 \, (n+1)(n+2) + 1) \, 2^{-t}$
   \end{algorithmic}
 \begin{verbatim}
 void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {
@@ -462,8 +528,7 @@ To bound the difference $\abs{\hat p_n \, 2^{-t} - p_n}$, we analyze
 the effect on the result of a small perturbation in each iteration
 of \eqref{eq:rec-bis}.
 The bound is based on a classical linearity argument (compare, e.g.,
-\cite{Wimp1984}) combined with generating and majorant series
-techniques.
+\cite{Wimp1984}) combined with majorant series techniques.
 
 \begin{proposition} \label{prop:rec-error}
 Suppose that a sequence $(\tilde p_n)_{n \geq -1}$ satisfies
@@ -515,24 +580,17 @@ we see that \eqref{eq:rec-error} translates into
 \[ (1 - 2 xz + z^2) z \ddz \delta (z)
    = z (x - z) \delta (z) + z \eta (z). \]
 The solution of this differential equation with $\delta (0) = 0$ reads
-\[ \delta(z) = p(z)  \int_0^z \eta(w) \, p(w) \, dw \]
-where, cf. \eqref{eq:generating-series},
-\[ p(z) = \sum_{n=0}^{\infty} p_n z^n
+(cf. \eqref{eq:generating-series})
+\[ \delta(z) = p(z)  \int_0^z \eta(w) \, p(w) \, dw,
+   \qquad
+   p(z) = \sum_{n=0}^{\infty} p_n z^n
+        = F(x, z)
         = \frac{1}{\sqrt{1 - 2 xz + z^2}}. \]
 This is an exact expression of the ``global'' error $\delta$ in terms
 of the ``local'' errors~$\varepsilon_n$.
-
-Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
-series $f(z)$.
-If $f$, $g$, $\hat f$, $\hat g$ are power series such that
-$\abs{[z^n] f} \leq [z^n] \hat f$ and
-$\abs{[z^n] g} \leq [z^n] \hat g$
-for all $n$, then also
-$\abs{[z^n] \int_0^z f} \leq [z^n] \int_0^z \hat f$ and
-$\abs{[z^n] (fg)} \leq [z^n] (\hat f \hat g)$.
 Since $\abs{p_n} = \abs{P_n(x)} \leq 1$
 and $\abs{\eta_n} \leq (n+1) \bar \varepsilon$,
-it follows that
+it follows by Lemma \ref{lemma:majorants} that
 \[
   \abs{\delta_n}
   = \left| [z^n] \left( p(z)  \int_0^z \eta(w) \, p(w) \, dw \right) \right|
@@ -551,7 +609,7 @@ and therefore
 \begin{corollary}
 Suppose that $x = \hat x \, 2^{-t}$ for some $t \geq 0$ and
 $\hat x \in \mathbb Z$.
-The sequence $(p_n)_{n \geq 0}$ defined by \eqref{eq:rec-fxpt}
+The sequence $(\hat p_n)_{n \geq 0}$ defined by \eqref{eq:rec-fxpt}
 satisfies
 \begin{equation} \label{eq:bound-fxprec}
   \abs{ \hat p_n 2^{-t} - p_n }
@@ -637,13 +695,13 @@ In both cases, we can write
 \end{align*}
 with $|\alpha_k|, |\beta_k|, |\gamma_k| \leq 1$.
 The first equation implies
-$k 2^{-t} \vp_{k-1}/\vd_{k-1} = \tilde p_{k-1} + \alpha_{k-1} 2^{-t}$
+$2^{-t} k \, \vp_{k-1}/\vd_{k-1} = \tilde p_{k-1} + \alpha_{k-1} 2^{-t}$
 for $k \geq 2$.
 Since the latter equality also holds for $k = 1$ with $\alpha_0 = 0$, we can
 substitute it in the second equation, yielding
 \[
   \tilde p_{k+1}
-  = \frac{\vq_k}{\vd_k} 2^{-t}
+  % = \frac{\vq_k}{\vd_k} 2^{-t}
   = \frac{ (2k+1) x \tilde p_k - k \tilde p_{k-1} }{k+1}
      + 2^{-t} \left(
           \frac{-k \alpha_{k-1}}{k+1}
@@ -654,7 +712,7 @@ substitute it in the second equation, yielding
 This relation holds for $k \geq 1$, and we extend it to $k=0$ by setting
 $\beta_0 = \gamma_0 = 0$.
 Thus, $\tilde p_k$ also satisfies~\eqref{eq:rec-pert} with
-$\bar\varepsilon = 3 \cdot 2^{-t}$, and Proposition \ref{prop:rec-error} applies.
+$|\varepsilon_n| \leq 3 \cdot 2^{-t}$, and Proposition \ref{prop:rec-error} applies.
 The final values of $\vq$~and~$\vp$ are respectively
 $\lceil 2^t \tilde p_n \rfloor$
 and
