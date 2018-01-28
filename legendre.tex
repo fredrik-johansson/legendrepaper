@@ -839,8 +839,10 @@ For $u \ge 0$, the series does not suffer from cancellation.
 For $u < 0$, we can estimate the amount of
 cancellation from the magnitude of $P_n(x')$ where $|u| = (x'-1)/2$.
 For not too large $x' \ge 1$, a very good approximation is
-$$P_n(x') \approx \sum_{k=0}^{\infty} \frac{n^{2k}}{(k!)^2} u^k = I_0(2n\sqrt{u}) \approx e^{2n\sqrt{u}}.$$
-We therefore need about $2n\sqrt{\max(0,-u)} / \log(2)$ bits
+\[ P_n(x') \leq 2 \sum_{k=0}^{\infty} \frac{n^{2k}}{k!^2} |u|^k
+           = 2\,I_0(2n\sqrt{|u|})
+           \leq 2\,e^{2n\sqrt{|u|}}. \]
+We therefore need about $2n\sqrt{\max(0,-u)} / \ln(2)$ bits
 of increased precision when evaluating the series.
 
 We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
