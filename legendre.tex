@@ -1016,12 +1016,10 @@ using floating-point arithmetic with directed rounding,
 while additional rounding errors are tracked by the ball arithmetic.
 
 \begin{figure}[h!]
-\begin{centering}
-\includegraphics[width=0.8\textwidth]{timeplot}
+\includegraphics[width=\textwidth]{timeplot}
 \caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
 The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
 \label{fig:timeplot}
-\end{centering}
 \end{figure}
 
 The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$ is not completely realistic, but this cost estimate nonetheless captures the correct asymptotics when
@@ -1043,7 +1041,7 @@ For large $n$ and $p \ll n$, a sharp peak appears at the transition between the 
 
 \begin{figure}[h!]
 \begin{centering}
-\includegraphics[width=0.8\textwidth]{benchplot}
+\includegraphics[width=\textwidth]{benchplot}
 \caption{Performance comparison of various methods to evaluate $(P_n(x), P'_n(x))$ to $p$-bit precision for a
 set of $n / 2$ points $0 < x < 1$ distributed like the roots of $P_n$.
 The $y$ axis (relative time) shows the time divided by the time
