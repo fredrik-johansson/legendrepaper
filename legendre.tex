@@ -1146,10 +1146,14 @@ followed by refinements with the interval Newton method
 at doubling precision steps for very high precision.
 
 \begin{table}[h!]
-\begin{centering}
-\begin{tabular}{ c | c c c c c }
-$n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
-20  & 0.000149  &  0.000300  &  0.000660  &  0.00149  &  0.0217  \\ 
+\caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision.
+(For large $n$ and $p$, the time was estimated by computing a subset of the nodes and weights.)}
+\label{tab:timings}
+\begin{center}
+\begin{tabular}{ r | c c c c c }
+$n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\
+\hline\rule{0pt}{3ex}
+20  & 0.000149  &  0.000300  &  0.000660  &  0.00149  &  0.0217 \\ 
 50  & 0.000540  &  0.00119  &  0.00267  &  0.00590  &  0.0760  \\ 
 100  & 0.00181  &  0.00380  &  0.00900  &  0.0188  &  0.205  \\ 
 200  & 0.00660  &  0.0141  &  0.0310  &  0.0640  &  0.624  \\ 
@@ -1161,10 +1165,7 @@ $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 100000  & 4.90  &  16.1  &  49.6  &  221  &  13755  \\ 
 1000000  & 73.0  &  195  &  512  &  2016  &  105705
 \end{tabular}
-\caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision.
-(For large $n$ and $p$, the time was estimated by computing a subset of the nodes and weights.)}
-\label{tab:timings}
-\end{centering}
+\end{center}
 \end{table}
 
 Table~\ref{tab:timings} shows absolute timings for computing
@@ -1211,8 +1212,14 @@ A breakdown for each degree level
 is shown in Table~\ref{tab:arprectimings}.
 
 \begin{table}[h!]
-\begin{centering}
-\begin{tabular}{ c | c c | c c| c c | c c }
+\caption{Left columns: time in seconds to generate 1000-digit
+quadrature rules for the degrees~$n$ used by ARPREC.
+Right columns: for three different integrals, the
+error $|\int_{-1}^1 f(x) dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
+quadrature rule, and the time to evaluate this degree-$n$ approximation
+of the integral at 1000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
+\begin{center}
+\begin{tabular}{ r | c c | c c| c c | c c }
 $n$ & ARPREC & Our code &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
@@ -1229,18 +1236,16 @@ $n$ & ARPREC & Our code &
 3072 & 241 & 9.75 &  &  &  &  &  &  \\
 6144 & 1013 & 18.4 &  &  &  &  &  &  \\
 \end{tabular}
-\caption{Left columns: time in seconds to generate 1000-digit
-quadrature rules for the degrees~$n$ used by ARPREC.
-Right columns: for three different integrals, the
-error $|\int_{-1}^1 f(x) dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
-quadrature rule, and the time to evaluate this degree-$n$ approximation
-of the integral at 1000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
 \label{tab:arprectimings}
-\end{centering}
+\end{center}
 \end{table}
 
 \begin{table}[h!]
-\begin{centering}
+\caption{Left columns: step sizes $h$, number of evaluation
+points, and time to compute nodes for double exponential quadrature with Arb
+at 1000-digit precision. Right columns: error and evaluation
+time given precomputed nodes.}
+\begin{center}
 \begin{tabular}{ c c c | c c | c c | c c }
 $h$ & $2n+1$ & Time &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
@@ -1251,12 +1256,8 @@ $h$ & $2n+1$ & Time &
 $2^{-8}$ & 3977 & $0.14$ & $10^{-814}$ & 0.25 & $10^{-909}$ & 1.75 & $10^{-630}$ & 13.0 \\
 $2^{-9}$ & 7955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\varepsilon$ & 25.1
 \end{tabular}
-\caption{Left columns: step sizes $h$, number of evaluation
-points, and time to compute nodes for double exponential quadrature with Arb
-at 1000-digit precision. Right columns: error and evaluation
-time given precomputed nodes.}
 \label{tab:dequad}
-\end{centering}
+\end{center}
 \end{table}
 
 Table~\ref{tab:arprectimings} also
