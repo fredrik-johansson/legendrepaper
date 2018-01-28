@@ -102,14 +102,10 @@ mathematical physics, and experimental mathematics,
 it is necessary to compute integrals to an accuracy of
 hundreds of digits, and occasionally even tens of
 thousands of digits~\cite{bailey2011high}.
-The Gauss-Legendre formula is especially well suited for
-integration of smooth functions without endpoint singularities, where it
-achieves an accuracy of $p$ bits with $n = \OO(p)$ evaluation points.
-
-Indeed, it is well known that~\eqref{eq:glquad} is nearly optimal among
-all quadrature rules for integrands that are
+It is well known that the Gauss-Legendre formula~\eqref{eq:glquad} is nearly
+optimal among all quadrature rules for integrands that are
 well-approximated by polynomials, in particular for
-analytic $f$ without singularities close to
+analytic~$f$ without singularities close to
 the path of integration~\cite{kowalski1985gauss,trefethen2008gauss}.
 As a special case, the $n$-point rule~\eqref{eq:glquad} is exact
 when $f$ is any polynomial of degree at most $2n-1$.
@@ -117,6 +113,9 @@ In general, the error in~\eqref{eq:glquad} can be bounded in terms of
 $\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or if $f$ is analytic on a domain $D$
 containing $(-1,1)$, in terms of $\sup_{z \in D} |f(z)|$
 and the distance from the boundary of $D$ to $(-1,1)$.
+For integration of smooth functions without endpoint singularities,
+Gauss-Legendre quadrature achieves an accuracy of $p$ bits with $n = \OO(p)$
+evaluation points.
 Even when the conditions are not ideal for using \eqref{eq:glquad} directly,
 rapid convergence is often possible
 by combining~\eqref{eq:glquad}
@@ -168,7 +167,7 @@ but did not study fast methods for large $n$.
 
 If we assume that the precision $p$ varies,
 then it is clear that any node and weight
-can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time
+can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time,
 by performing $\OO(\log p)$ Newton iterations \eqref{eq:newton}
 from an appropriate initial value.
 As a consequence, the
@@ -194,13 +193,13 @@ simultaneously using fast multipoint evaluation, which costs
 $\OOtilde(n p)$ bit operations.
 Fast multipoint evaluation is numerically unstable and
 generically loses $\OO(n)$ bits of accuracy, but we can compensate for
-this loss by using $\OO(n)$ guard bits
-(since $p \sim n$ by assumption, this does not change the asymptotic complexity estimate)~\cite{kobel2013fast}.
+this loss by using $\OO(n)$ guard bits.
+Since $p \sim n$ by assumption, this does not change the asymptotic complexity estimate~\cite{kobel2013fast}.
 \end{proof}
 
 Completing the details
 of the proof is a technical exercise.
-Unfortunately, despite being elegant in theory,
+Despite being elegant in theory,
 the algorithm behind Theorem~\ref{thm:complexity} has high overhead
 in practice. Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
@@ -224,10 +223,9 @@ the interval Newton method~\cite{moore1979methods}.
 
 Our algorithm for evaluating Legendre polynomials switches between
 different methods.
-In Section~\ref{sec:recurrence},
-we prove practical error bounds for the standard three-term recurrence,
-which can be efficiently implemented
-in fixed-point arithmetic.
+In Section~\ref{sec:recurrence}, we prove practical error bounds for
+the three-term recurrence~\eqref{eq:recurrence}, which can be
+efficiently implemented in fixed-point arithmetic.
 This method is ideal for $n$ and~$p$ up to a few hundred.
 For larger $n$ or $p$, we use a fast method for evaluation
 of hypergeometric series.
@@ -243,7 +241,6 @@ that compare the performance
 of our algorithm
 to some previous implementations
 as well as the asymptotically fast algorithm in Theorem~\ref{thm:complexity}.
-
 For computing Gauss-Legendre nodes and weights with $n \sim p$,
 our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
 classical methods. However, our algorithm has much lower overhead,
@@ -294,15 +291,15 @@ A simple option is to deduce $P'_n(x)$ from
 $P_n(x)$ and $P_{n-1}(x)$ using \eqref{eq:mixed}.
 When $x$ is close to~$1$, though, this formula involves a
 cancellation of about $\abs{\log_2(1 - x)}$ bits in the subtraction,
-followed by a division by $x^2 - 1$, so that a direct evaluation
+followed by a division by $x^2 - 1$. Therefore, a direct evaluation
 of $P'_n(x)$ may be preferable to reduce the working precision.
 
 Our evaluation algorithms rely on ball arithmetic internally to
 propagate the error bounds up to the final result.
 Since some methods would produce unsatisfactorily large enclosures
-when executed on input balls of radius $r > 0$, we evaluate $P_n(m)$
-(with higher internal precision if necessary) and use a first-order
-bound
+when executed on input balls $[x \pm r]$ of radius $r > 0$, we
+evaluate $P_n(m)$ (with higher internal precision if necessary) and
+use a first-order bound
 \[ \max_{\xi \in x} |P_n(\xi) - P_n(m)|
    \le r \max_{\xi \in x} |P'_n(\xi)| \]
 to separately bound the propagated error.
@@ -407,11 +404,10 @@ methods:
   \item the iterative computation of~$P_n(x)$
   via the three-term recurrence~\eqref{eq:recurrence},
   \item an asymptotic expansion of $P_n(x)$ as~$n \to \infty$,
-  \item the usual terminating expansion of $P_n$ in the monomial
-  basis,
-  \item a similar terminating expansion at~$1$.
+  \item the usual expanded expression of $P_n$ in the monomial basis,
+  \item the analogous terminating expansion at~$1$.
 \end{itemize}
-Up to simple prefactors, all three expansions are hypergeometric
+All three expansions can be written as hypergeometric
 series, i.e., sums of the form $\sum_k c_k \xi^k$ where $c_k/c_{k-1}$
 is a rational function of~$k$.
 
@@ -452,16 +448,6 @@ It is thus attractive for small $n$ and $t$, especially when both
 $P_n(x)$ and $P'_n(x)$ are needed, since we can get $P_{n-1}(x)$ at no
 additional cost.
 
-In a direct implementation of this recurrence in ball arithmetic, the
-width of the enclosures would roughly double at every iteration,
-requiring to increase the internal working precision by $\OO(n)$ bits.
-We avoid this issue by performing a pen-and-paper round-off error
-analysis of the evaluation that yields a less pessimistic bound on the
-accumulated error.
-Additionally, the static error bound allows us to implement the
-recurrence in fixed-point arithmetic, avoiding the overhead of
-interval operations.
-
 Fix $x \in [-1, 1]$, and let $p_n = P_n(x)$.
 Bonnet's formula~\eqref{eq:recurrence} gives
 \begin{equation} \label{eq:rec-bis}
@@ -470,7 +456,16 @@ Bonnet's formula~\eqref{eq:recurrence} gives
     \bigl( (2n +1) x p_n - n p_{n-1} \bigr),
   \qquad n \geq 0.
 \end{equation}
-We implement this recurrence as follows.
+In a direct implementation of this recurrence in ball arithmetic, the
+width of the enclosures would roughly double at every iteration,
+requiring to increase the internal working precision by $\OO(n)$ bits.
+We avoid this issue by performing a pen-and-paper round-off error
+analysis of the evaluation that yields a less pessimistic bound on the
+accumulated error.
+Additionally, the static error bound allows us to implement the
+recurrence in fixed-point arithmetic, avoiding the overhead of
+floating-point and interval operations.
+
 Suppose $x = \hat x \, 2^{-t}$ with $\hat x \in \mathbb Z$.
 Let $\lceil u \rfloor$ denote the integer truncation of a real
 number~$u$ (any other rounding function would do).
@@ -484,7 +479,7 @@ The integer sequence $(\hat p_n)$ defined by
     \right\rfloor
 \end{equation}
 is easy to compute using only integer arithmetic, and
-$\hat p_n \, 2^{-t}$ is an approximation of $p_n$.
+$\hat p_n \, 2^{-t}$ is an approximation of~$p_n$.
 Algorithm~\ref{alg:gmprec} provides a complete C implementation
 using GMP~\cite{granlund2017}.
 As a small optimization, we delay the division by~$n+1$ until we have
@@ -580,7 +575,7 @@ we see that \eqref{eq:rec-error} translates into
 \[ (1 - 2 xz + z^2) z \ddz \delta (z)
    = z (x - z) \delta (z) + z \eta (z). \]
 The solution of this differential equation with $\delta (0) = 0$ reads
-(cf. \eqref{eq:generating-series})
+(cf.~\eqref{eq:generating-series})
 \[ \delta(z) = p(z)  \int_0^z \eta(w) \, p(w) \, dw,
    \qquad
    p(z) = \sum_{n=0}^{\infty} p_n z^n
@@ -729,7 +724,7 @@ presented next work very well in this case.
 
 \label{sec:series}
 
-For large $n$ or $p$, we use series expansions of $P_n(x)$ with
+For large $n$ or $p$, we employ series expansions of $P_n(x)$ with
 respect to either $n$ or $x$ rather than the algorithm from the
 previous section.
 The coefficients of the series are also computed by recurrence,
@@ -744,7 +739,7 @@ and $x=1$), and then discuss their efficient evaluation.
 
 For fixed $|x| < 1$ or equivalently $x = \cos(\theta)$ with $0 < \theta < \pi$,
 an asymptotic expansion for $P_n(x)$ as $n \to \infty$
-can be given as (\cite{Bogaert2012}, (3.4))
+can be given as \cite[Eq.~3.4]{Bogaert2012}
 \begin{equation}
 \label{eq:asymptotic}
 P_n(\cos(\theta)) = \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2}
@@ -763,10 +758,8 @@ and the error term satisfies
 \label{eq:truncerr0}
 |\xi_{n,K}(\theta)| < 2 \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2} \frac{C_{n,K}}{\sin^K(\theta)}.
 \end{equation}
-
 The coefficients $C_{n,k}$ are a hypergeometric sequence with
 $$\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.$$
-
 To evaluate the error bound, we can use the following inequality for $n, k \ge 1$:
 \begin{equation}
 \label{eq:truncerr0b}
@@ -824,8 +817,8 @@ Solving the majorizing recurrence $f_n = 2 |z| f_{n-1} + f_{n-2}$ with
 $f_0 = 1$, $f_1 = |z|$ shows that
 \[ |P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n. \]
 Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
-is about $n \log_2(|x| + \sqrt{1 + |x|^2})$ bits
-(which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$).
+is about $n \log_2\bigl(|x| + \sqrt{1 + |x|^2}\bigr)$ bits
+(which is at most $(\log_2 (1+\sqrt{2})) \, n \approx 1.27156n$).
 
 \subsection{Expansion at one}
 
@@ -835,7 +828,6 @@ where $u = (x-1)/2$.
 The coefficients $c_{n,k}$ are hypergeometric with
 ratio $c_{n,k}/c_{n,k-1} = (n-k+1)(n+k)/k^2$
 and initial value $c_{n,0} = 1$.
-
 If the series is truncated after the $k = K - 1$ term,
 the error is bounded by
 \begin{equation}
@@ -1100,7 +1092,7 @@ For modest $n$,
 the three-term recurrence is much faster
 than the hypergeometric series (typically by a factor 3-4)
 due to working with negligible extra precision
-and due to the low-overhead fixed-point arithmetic.
+and thanks to the low overhead of fixed-point arithmetic.
 This low overhead is very useful for typical evaluation of
 Legendre polynomials and generation of quadrature nodes
 for one or a few machine words of precision.
