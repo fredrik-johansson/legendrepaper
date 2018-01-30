@@ -1,5 +1,6 @@
 %\documentclass[11pt,a4paper]{article}
-\documentclass{siamart0216}
+
+\documentclass[nohypdvips]{siamart0216}
 
 \usepackage[T1,T2A]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -11,6 +12,7 @@
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{hyperref}
+\usepackage{breqn}
 
 %\usepackage{amsthm}
 %\usepackage[margin=1.1in]{geometry}
@@ -46,7 +48,7 @@
 \title{Fast and rigorous arbitrary-precision evaluation of Legendre
 polynomials and Gauss-Legendre quadrature nodes}
 \author{Fredrik Johansson \and Marc Mezzarobba}
-\date{}
+%\date{}
 \maketitle
 
 \begin{abstract}
@@ -146,11 +148,13 @@ for naive root-finding and polynomial evaluation methods.
 The classical Golub-Welsch algorithm avoids accuracy problems
 by formulating the task of computing the nodes as
 finding the eigenvalues of a tridiagonal matrix~\cite{golub1969calculation},
-but this approach is too slow to be practical for large~$n$.
+but this approach is still too slow to be practical for large~$n$.
 
-Work by several authors in the last decade has led to asymptotic methods
+In the last decade, several authors have contributed to
+the development of asymptotic methods
 that permit computing any individual node and weight for arbitrarily large $n$
-in $\OO(1)$ time, culminating in the 2014 paper by Bogaert \cite{bogaert2014iteration}.
+in $\OO(1)$ time, culminating in the 2014 work by
+Bogaert~\cite{Bogaert2012,hale2013fast,bogaert2014iteration}.
 For a review of this progress, see Townsend~\cite{townsend2015race}.
 Of course, the ``$\OO(1)$'' bound assumes that a fixed
 level of precision is used. In the prevailing literature
@@ -186,8 +190,8 @@ then it is clear that any node and weight
 can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time
 by performing $\OO(\log p)$ Newton iterations \eqref{eq:newton}
 from an appropriate initial value.
-As a consequence, the
-full set of degree-$n$ quadrature nodes and weights
+As a consequence, the full set of nodes and weights
+for the degree-$n$ quadrature rule
 can be computed in $\OOtilde(n^2 p)$ time.
 For numerical integration of analytic functions
 where we typically have $p \sim n$, a better (indeed, optimal) estimate
@@ -210,14 +214,16 @@ $\OOtilde(n p)$ bit operations.
 Fast multipoint evaluation is numerically unstable and
 generically loses $\OO(n)$ bits of accuracy, but we can compensate for
 this loss by using $\OO(n)$ guard bits
-(since $p \sim n$ by assumption, this does not change the asymptotic complexity estimate)~\cite{kobel2013fast}.
+(since $p \sim n$ by assumption, this does not change the complexity bound)~\cite{kobel2013fast}.
 \end{proof}
 
 Completing the details
 of the proof is a technical exercise.
 Unfortunately, despite being elegant in theory,
 the algorithm behind Theorem~\ref{thm:complexity} has high overhead
-in practice. Working with expanded polynomials and
+in practice, in large part due to the need to work
+with greatly increased precision.
+Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
 makes parallelization difficult.
 We can achieve a slightly worse but still subcubic
@@ -258,8 +264,7 @@ that compare the performance
 of our algorithm
 to some previous implementations
 as well as the asymptotically fast algorithm in Theorem~\ref{thm:complexity}.
-
-For computing Gauss-Legendre nodes and weights with $n \sim p$,
+For generating Gauss-Legendre quadrature rules with $n \sim p$,
 our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
 classical methods. However, our algorithm has much lower overhead,
 and for parameters $p, n < 10^5$ which are most relevant to applications,
@@ -271,7 +276,7 @@ Finally, Section~\ref{sec:vsothers} reviews the viability of Gauss-Legendre
 quadrature compared to other methods
 for extremely high precision integration.
 
-Our code for computing Legendre polynomials and
+Our code for evaluating Legendre polynomials and computing
 Gauss-Legendre nodes and weights is freely available as part of
 the Arb library \cite{Johansson2017arb}.
 
@@ -281,7 +286,7 @@ the Arb library \cite{Johansson2017arb}.
 
 We work in the framework on midpoint-radius interval arithmetic,
 also called ball arithmetic.
-In general, given an integer~$n$ and a ball $x = [m \pm r]$,
+In general, given an integer~$n$ and a ball $x = [m \pm r] = [m-r, m+r]$,
 we want to evaluate $P_n(x)$ at~$x$,
 yielding an enclosure $y = [m' \pm r']$ such that $P_n(\xi) \in y$
 holds for all $\xi \in x$.
@@ -296,11 +301,11 @@ this is not necessary in arbitrary-precision arithmetic since
 a slight precision increase (of the order $\OO(\log n)$ bits)
 works as well.
 
-Note that, for rigorous evaluation of $P_n(z)$ with complex $z$
+We note that, for rigorous evaluation of $P_n(z)$ with complex $z$
 as well as Legendre functions of non-integer order $n$,
 generic methods for the hypergeometric ${}_2F_1$ function
 are applicable if $n$ is not extremely large; see~\cite{johansson2016hypergeometric}.
-In addition, real $|x| > 1$ can be handled with naive numerical methods.
+Real $|x| > 1$ can also be handled easily using naive methods.
 
 In view of the use of Newton's method to compute the roots,
 we also need to evaluate the derivative $P'_n(x)$,
@@ -341,7 +346,7 @@ For $-1 \leq x \leq 1$, we have
 %$$|p^{(d)}(x)| \le \left(\frac{2n}{\sqrt{1-x^2}}\right)^d$$
 %Markov: $$|p^{(d)}(x)| \le (n(n-1)\cdots(n-d+1))^2$$
 
-Using the Bernstein inequality (see \cite{borwein2012polynomials}, chapter 5)
+Using the Bernstein inequality (\cite{borwein2012polynomials}, chapter 5)
 and the fact that $|P^{(d)}_n(x)| \le |P^{(d)}_n(1)|$ for $-1 \le x \le 1$,
 we have~\eqref{eq:prop-bound}
 and contiguous relations yield~\eqref{eq:prop-bound1}.
@@ -363,7 +368,7 @@ Up to simple prefactors, all three expansions are hypergeometric
 series, i.e., sums of the form $\sum_k c_k \xi^k$ where $c_k/c_{k-1}$
 is a rational function of~$k$.
 
-The constraints and heuristics used to select between these algorithms
+The constraints and heuristics used to select between these methods
 are described in detail below.
 Roughly speaking,
 the three-term recurrence is used for small index~$n$ and precision~$p$, when~$x$
@@ -638,7 +643,7 @@ $|\alpha_k|, |\beta_k|, |\gamma_k| \leq 1$, we have
      + \gamma_k
 \end{align*}
 and hence
-\[
+\begin{dmath*}
   \tilde p_{k+1}
   = \frac{\vq_k 2^{-t}}{(k+1) \vd_k}
   = \frac{ (2k+1) x \tilde p_k - k \tilde p_{k-1} }{k+1}
@@ -647,7 +652,7 @@ and hence
         + \frac{2k + 1}{k (k+1) \vd_{k-1}} \beta_k
         + \frac{1}{k+1} \gamma_k
        \right) 2^{-t}.
-\]
+\end{dmath*}
 The same equality holds for $k=0$, with
 $\alpha_0 = \beta_0 = \gamma_0 = 0$.
 Thus, $\tilde p_k$ satisfies~\eqref{eq:rec-pert} with
@@ -662,7 +667,7 @@ $\lceil \vp_{n-1}/\vd_{n-1} \rfloor
 whence the bound~\eqref{eq:bound-gmprec}.
 \end{proof}
 
-We currently do not use fast evaluation techniques for large~$n$ in
+We do not use asymptotically faster evaluation techniques for large~$n$ in
 combination with this recurrence, since the series expansions to be
 presented next work very well in this case.
 
@@ -736,6 +741,10 @@ P_n(x) = \sqrt{\pi y} \, \operatorname{Re}\left[
 This eliminates the explicit trigonometric functions and permits using
 Algorithm~\ref{alg:hyprs} below to evaluate the series.
 
+The evaluation of \eqref{eq:asymptoticcomplex} in ball arithmetic
+is numerically stable, and we therefore only need to add a few
+guard bits to the working precision.
+
 \subsection{Expansion at zero}
 
 If $n = 2d$ is even, the expansion of $P_n(x)$ on the monomial basis
@@ -765,8 +774,13 @@ Solving the majorizing recurrence $f_n = 2 |z| f_{n-1} + f_{n-2}$ with
 $f_0 = 1$, $f_1 = |z|$ shows that
 \[ |P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n. \]
 Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
-is about $n \log_2(|x| + \sqrt{1 + |x|^2})$ bits
-(which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$).
+is about
+\begin{equation}
+p_A = n \log_2(|x| + \sqrt{1 + |x|^2})
+\end{equation}
+bits (which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$),
+so using ball arithmetic with about $p + p_A$ bits of working precision
+for the series evaluation gives $p$-bit accuracy.
 
 \subsection{Expansion at one}
 
@@ -966,7 +980,7 @@ while additional rounding errors are tracked by the ball arithmetic.
 
 \begin{figure}[h!]
 \begin{centering}
-\includegraphics[width=0.8\textwidth]{timeplot}
+\includegraphics[width=\textwidth]{timeplot}
 \caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
 The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
 \label{fig:timeplot}
@@ -982,9 +996,16 @@ the distribution of the roots $x_k$ of $P_n(x)$ on $(0,1]$ (where $k/n = 0$ is c
 The individual curves show the time at respective precisions $p = 64, 256, 1024, 4096, 16384$.
 Each curve has been normalized by its median height, i.e.\ the median time to compute any root with a fixed $(n,p)$ is set to 1.
 
-For large $n$ and $p \ll n$, a sharp peak appears at the transition between the series expansion at $x = 1$ and the asymptotic expansion. This peak could presumably be removed by use of an asymptotic method for large $n$ valid when $x \approx 1$. However, the extra area under the peak compared to the area under the median baseline is so small that generating the full set of Gauss quadrature nodes would not be sped up much.
+For large $n$ and $p \ll n$, a sharp peak appears at the transition between the series
+expansion at $x = 1$ and the asymptotic expansion. This peak could presumably be
+removed by use of an asymptotic method for large $n$ valid when $x \approx 1$. However, 
+the extra area under the peak compared to the area under the median baseline is so small
+that generating the full set of Gauss quadrature nodes would not be sped up much.
 
 \section{Benchmarks}
+
+Except where otherwise noted, the timings were obtained on a
+1.90 GHz Intel Core i5-4300U CPU using a single core.
 
 \label{sec:bench}
 
@@ -992,7 +1013,7 @@ For large $n$ and $p \ll n$, a sharp peak appears at the transition between the 
 
 \begin{figure}[h!]
 \begin{centering}
-\includegraphics[width=0.8\textwidth]{benchplot}
+\includegraphics[width=0.9 \textwidth]{benchplot}
 \caption{Performance comparison of various methods to evaluate $(P_n(x), P'_n(x))$ to $p$-bit precision for a
 set of $n / 2$ points $0 < x < 1$ distributed like the roots of $P_n$.
 The $y$ axis (relative time) shows the time divided by the time
@@ -1005,28 +1026,27 @@ Figure~\ref{fig:benchplot} compares the performance of different methods
 for evaluating $(P_n(x), P'_n(x))$ on a set of $n/2$ points
 distributed like the positive roots of $P_n(x)$
 to simulate one stage of Newton iteration at $p$-bit precision.
-The following four methods are timed:
+The time for the three-term recurrence is set to 1, i.e.\ we divide
+the other timings by this measurement.
+The following methods are timed:
 
 \begin{itemize}
-\item The time for evaluation using the three-term recurrence is set to 1, i.e.\ we divide
-the other timings by this measurement.
-\item The solid curves show the time using our hybrid method
-(from here on called the ``main algorithm'')
+\item Our hybrid method (from here on called the ``main algorithm'')
 with automatic selection between the three-term
 recurrence and different
 series expansions.
-\item The dotted curves show the time using the main algorithm without
+\item The main algorithm without
 the three-term recurrence as the basecase, i.e.\ using series expansions
 even for very small $n$.
-\item The dashed curves show the time for fast multipoint
+\item Fast multipoint
 evaluation of the expanded polynomials $P_n(x)$ and $P'_n(x)$.
 Technically, we expand
 $P_{n}(\sqrt{x})$ for even $n$ and $P_{n}(\sqrt{x})/\sqrt{x}$ for odd $n$
 and evaluate at $x^2$ since this halves the amount of work.
-The polynomial coefficients are generated in advance using
+The polynomial coefficients are generated using
 the hypergeometric recurrence and
 the fast multipoint evaluation is done using
-the Arb function \texttt{\_arb\_poly\_evaluate\_vec\_fast\_precomp}
+\texttt{\_arb\_poly\_evaluate\_vec\_fast\_precomp}
 (where the ``precomp'' suffix indicates that
 the same product tree is used for both $P_n$ and $P'_n$).
 The fast multipoint evaluation is done with $2.9n$ guard bits,
@@ -1066,6 +1086,7 @@ over the three-term recurrence after the crossover point, at least initially.
 This speedup should level off asymptotically, but
 in practice this only occurs for $n$ larger than $10^4$
 where we have already gained a factor 10 or more.
+The leveling off is visible in the bottom right figure ($p = 10n$).
 
 Fast multipoint evaluation gives a true asymptotic $\OO(n)$ speedup,
 but since it has much higher overhead,
@@ -1085,7 +1106,6 @@ currently seems to have limited practical value for this application.
 
 The function
 \texttt{arb\_hypgeom\_legendre\_p\_ui\_root(x, w, n, k, p)}
-in the Arb library
 sets the output variable
 $x$ to a ball containing the root of $P_n$ with index $k$ (we use the indexing
 $0 \le k < n$, with $k = 0$ giving the root closest to 1),
@@ -1118,11 +1138,42 @@ $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 \end{centering}
 \end{table}
 
+% Pari-time
+%  0.000586    0.000702    0.001504     0.003486    0.078
+%  0.004338    0.005044    0.010352     0.02151     0.4286
+%  0.02034     0.02289     0.045        0.089       1.544
+%  0.11242     0.1256      0.243        0.448       6.528
+%  2.038       2.107       2.911        5.051       58.318
+%  25.301      26.090      28.680       39.296      300.248
+%  496.0       478.0       474.0        532.0       1880.0
+
+\begin{table}[h!]
+\begin{centering}
+\begin{tabular}{ c | c c c c c }
+$n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
+20  & 3.9  &  2.3  &  2.3  &  2.3  &  3.6  \\ 
+50  & 8.0  &  4.2 &  3.9  &  3.6  &  5.6  \\ 
+100  &  11 &   6.0  &   5.0  &  4.7 &  7.5  \\ 
+200  &  17  &  8.9  &  7.8  &  7.0  &  10  \\ 
+500  &  71 & 25  &  14  &  13  &  21  \\ 
+1000  & 383  &  150 &  46  &  29  &  31  \\ 
+2000  &  4680 & 1320  &  395  &  118  &  55  \\ 
+\end{tabular}
+\caption{Speedup of our code compared to Pari/GP for generating degree-$n$ Gauss-Legendre quadrature rules with $p$-bit precision.}
+\label{tab:parispeedup}
+\end{centering}
+\end{table}
+
 Table~\ref{tab:timings} shows absolute timings for computing
 degree-$n$ Gauss-Legendre nodes to $p$-bit precision
 by calling this function repeatedly with $0 \le k < n / 2$.
-The timings were obtained on a 1.90 GHz Intel Core i5-4300U CPU
-using a single core.
+Table~\ref{tab:parispeedup} shows the speedup ratio of our code
+compared to the \texttt{intnumgaussinit} function in Pari/GP
+which uses a generic polynomial root isolation strategy
+followed by Newton iteration for high precision refinement.
+The improvement is most dramatic for small~$p$ and large~$n$ where
+we benefit from using asymptotic expansions, but we also obtain a
+consistent speedup for large $p$.
 
 For low precision and large $n$, our implementation
 is about three orders of magnitude slower than the machine precision
@@ -1275,7 +1326,7 @@ by a discrete cosine transform which takes $\OO(n \log n)$
 arithmetic operations to compute by FFT.
 As a rule of thumb, $2n$-point Clenshaw-Curtis quadrature
 gives the same accuracy as $n$-point Gauss-Legendre quadrature
-(for instance, the Clenshaw-Curtis rule with $n = 384$ gives
+(for instance, the 384-point Clenshaw-Curtis rule gives
 errors of $10^{-229}$, $10^{-294}$ and $10^{-154}$ for the three
 integrals in Table~\ref{tab:arprectimings}).
 As a point of comparison with Tables \ref{tab:timings} and \ref{tab:arprectimings},
@@ -1346,11 +1397,11 @@ dependence on~$n$ for fixed precision $p$, and Theorem~\ref{thm:complexity}
 avoids the implied cubic time dependence on $n$ when $n \sim p$.
 In fact, Theorem~\ref{thm:complexity} implies that
 Gauss-Legendre, Clenshaw-Curtis and double exponential
-quadrature actually have the same quasi-optimal asymptotic bit complexity,
+quadrature have the same quasi-optimal asymptotic bit complexity,
 up to logarithmic factors.
 
-Although our experiments show that the algorithm in Theorem~\ref{thm:complexity}
-hardly is practical, our main algorithm does achieve a
+Our experiments show that the algorithm in Theorem~\ref{thm:complexity}
+hardly is worthwhile. However, our main algorithm does achieve a
 significant speedup for practical $p$ and $n$
 which allows us to compute Gauss-Legendre quadrature rules for
 1000-digit integration in 1-2 seconds and for 10000-digit integration in 10-20 minutes
