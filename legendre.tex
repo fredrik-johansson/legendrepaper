@@ -885,65 +885,6 @@ and about $2\sqrt{K}$ expensive nonscalar operations (general multiplications),
 whereas direct evaluation of the hypergeometric
 recurrence requires $\OO(K)$ expensive operations.
 
-Due to the scalar operations, rectangular splitting ultimately
-requires $\OO(K)$ arithmetic operations with $\OOtilde(p)$ bit complexity
-each
-just like straightforward evaluation of the recurrence, so it is
-not a genuine asymptotic improvement, but
-it is an improvement in practice and
-can give more than a factor 100 speedup at very high precision.
-It is possible to genuinely reduce the complexity of evaluating
-a hypergeometric sequence to $\OO(\sqrt{K} \log(K))$ arithmetic
-operations using a baby-step giant-step method
-that employs fast multipoint evaluation,
-but in practice rectangular splitting
-performs better until both $K$ and~$p$
-exceed $10^6$ (see \cite{Johansson2014rectangular}).
-
-Another technique for fast evaluation of hypergeometric series,
-binary splitting, would be useful when $p$ is large and the
-argument $x$ is a rational number with small numerator and denominator,
-but this case is not relevant for our application.
-
-Binary splitting also forms the basis of the bit-burst
-method~\cite[Section 4]{ChudnovskyChudnovsky1990}, which permits
-evaluating any fixed fixed hypergeometric series at any fixed point to
-absolute precision~$p$ in only~$\OOtilde(p)$ bit operations.
-Computing~$P_n(x)$ by this method would require $\OO(\log p)$ analytic
-continuation steps, each of which would entail two evaluations of
-general solutions of the Legendre differential equations, given by
-power series of radius of convergence $1 - |x|$ whose coefficients
-obey recurrences of order two.
-This is to be compared with a single series, given by a first-order
-recurrence and typically converging faster, for the expansions
-considered in Sections \ref{sec:series-asy}~to~\ref{sec:series-one}.
-Thus, the bit-burst method is unlikely to be competitive in the range
-of precision we are interested in, especially when the asymptotic
-series can be used.
-
-Nevertheless, it can be shown that the solutions with unit initial
-values at~$x_0$ of the Legendre equation have Taylor
-coefficients~$c_k$ at~$x_0$ bounded by
-$(n^2/(1-|x_0|))^{\OO(k)}$
-uniformly in $n$~and~$x_0$.
-% Proof sketch: The Legendre equation (in matrix form, say) is
-% majorized by something of the form
-%     g'(t) = O(n²)/(1-|x₀|-t) g(t)
-% whose solution has coefficients that grow like
-%     (n²/(1-|x₀|))^O(k).
-As a consequence, the cost of computing any individual root of
-$P_n(x)$ by the bit-burst method and Newton iteration is
-$\OOtilde(p) \, \log(n)^{\OO(1)}$.
-% Because we can get within O((1-|x|)/n²) of any root x_k by a single
-% evaluation of the series at 0 or 1 at a point of bit size
-% O(log(np)), and subsequent bit-burst steps will cost Õ(p)·log(n).
-For computing all the roots, this approach matches the $\OOtilde(np)$
-estimate of Theorem~\ref{thm:complexity}, while allowing for
-parallelization and requiring less memory.
-It may hence provide an alternative worth investigating to multipoint
-evaluation for precisions in the millions of bits.
-% Also: understand to what extend it applies to the asymptotic series?
-
 \begin{algorithm}[h!]
   %\algsetup{linenosize=\tiny}
   \caption{Evaluation of hypergeometric series using rectangular splitting}
@@ -1022,6 +963,65 @@ The redundant parameter $\Omega$ is a small convenience in the pseudocode.
 Setting $\Omega = 1$ and adding the constant term separately
 avoids having to make a special case to prevent division by zero
 when $q(0) = 0$.
+
+Due to the scalar operations, rectangular splitting ultimately
+requires $\OO(K)$ arithmetic operations with $\OOtilde(p)$ bit complexity
+each
+just like straightforward evaluation of the recurrence, so it is
+not a genuine asymptotic improvement, but
+it is an improvement in practice and
+can give more than a factor 100 speedup at very high precision.
+It is possible to genuinely reduce the complexity of evaluating
+a hypergeometric sequence to $\OO(\sqrt{K} \log(K))$ arithmetic
+operations using a baby-step giant-step method
+that employs fast multipoint evaluation,
+but in practice rectangular splitting
+performs better until both $K$ and~$p$
+exceed $10^6$ (see \cite{Johansson2014rectangular}).
+
+Another technique for fast evaluation of hypergeometric series,
+binary splitting, would be useful when $p$ is large and the
+argument $x$ is a rational number with small numerator and denominator,
+but this case is not relevant for our application.
+
+Binary splitting also forms the basis of the bit-burst
+method~\cite[Section 4]{ChudnovskyChudnovsky1990}, which permits
+evaluating any fixed fixed hypergeometric series at any fixed point to
+absolute precision~$p$ in only~$\OOtilde(p)$ bit operations.
+Computing~$P_n(x)$ by this method would require $\OO(\log p)$ analytic
+continuation steps, each of which would entail two evaluations of
+general solutions of the Legendre differential equations, given by
+power series of radius of convergence $1 - |x|$ whose coefficients
+obey recurrences of order two.
+This is to be compared with a single series, given by a first-order
+recurrence and typically converging faster, for the expansions
+considered in Sections \ref{sec:series-asy}~to~\ref{sec:series-one}.
+Thus, the bit-burst method is unlikely to be competitive in the range
+of precision we are interested in, especially when the asymptotic
+series can be used.
+
+Nevertheless, it can be shown that the solutions with unit initial
+values at~$x_0$ of the Legendre equation have Taylor
+coefficients~$c_k$ at~$x_0$ bounded by
+$(n^2/(1-|x_0|))^{\OO(k)}$
+uniformly in $n$~and~$x_0$.
+% Proof sketch: The Legendre equation (in matrix form, say) is
+% majorized by something of the form
+%     g'(t) = O(n²)/(1-|x₀|-t) g(t)
+% whose solution has coefficients that grow like
+%     (n²/(1-|x₀|))^O(k).
+As a consequence, the cost of computing any individual root of
+$P_n(x)$ by the bit-burst method and Newton iteration is
+$\OOtilde(p) \, \log(n)^{\OO(1)}$.
+% Because we can get within O((1-|x|)/n²) of any root x_k by a single
+% evaluation of the series at 0 or 1 at a point of bit size
+% O(log(np)), and subsequent bit-burst steps will cost Õ(p)·log(n).
+For computing all the roots, this approach matches the $\OOtilde(np)$
+estimate of Theorem~\ref{thm:complexity}, while allowing for
+parallelization and requiring less memory.
+It may hence provide an alternative worth investigating to multipoint
+evaluation for precisions in the millions of bits.
+% Also: understand to what extend it applies to the asymptotic series?
 
 \subsection{Binomial coefficients}
 
