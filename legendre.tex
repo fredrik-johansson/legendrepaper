@@ -1250,7 +1250,9 @@ $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\
 %  496.0       478.0       474.0        532.0       1880.0
 
 \begin{table}[h!]
-\begin{centering}
+\caption{Speedup of our code compared to Pari/GP for generating degree-$n$ Gauss-Legendre quadrature rules with $p$-bit precision.}
+\label{tab:parispeedup}
+\begin{center}
 \begin{tabular}{ c | c c c c c }
 $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 20  & 3.9  &  2.3  &  2.3  &  2.3  &  3.6  \\ 
@@ -1261,9 +1263,7 @@ $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 1000  & 383  &  150 &  46  &  29  &  31  \\ 
 2000  &  4680 & 1320  &  395  &  118  &  55  \\ 
 \end{tabular}
-\caption{Speedup of our code compared to Pari/GP for generating degree-$n$ Gauss-Legendre quadrature rules with $p$-bit precision.}
-\label{tab:parispeedup}
-\end{centering}
+\end{center}
 \end{table}
 
 Table~\ref{tab:timings} shows absolute timings for computing
