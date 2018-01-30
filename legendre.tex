@@ -20,7 +20,8 @@
 \renewcommand{\baselinestretch}{1.00}
 
 \newcommand{\abs}[1]{\mathopen| #1 \mathclose|}
-\newcommand{\ddz}{\frac{d}{dz}}
+\newcommand{\dx}{\mathrm d x}
+\newcommand{\ddz}{\frac{\mathrm d}{\mathrm dz}}
 
 
 \newcommand{\OO}{\mathcal{O}}
@@ -89,7 +90,7 @@ The definition implies that $P_n$ has $n$ roots all located in $(-1,1)$.
 Perhaps the most important application of Legendre polynomials
 is the Gauss-Legendre quadrature rule
 \begin{equation}
-\int_{-1}^{1} f(x) dx \approx \sum_{i=0}^{n-1} w_i f(x_i), \qquad
+\int_{-1}^{1} f(x) \dx \approx \sum_{i=0}^{n-1} w_i f(x_i), \qquad
 w_i = \frac{2}{(1-x_i^2) [P'_n(x_i)]^2},
 \label{eq:glquad}
 \end{equation}
@@ -108,7 +109,7 @@ well-approximated by polynomials, in particular for
 analytic~$f$ without singularities close to
 the path of integration~\cite{kowalski1985gauss,trefethen2008gauss}.
 As a special case, the $n$-point rule~\eqref{eq:glquad} is exact
-when $f$ is any polynomial of degree at most $2n-1$.
+when $f$ is a polynomial of degree at most $2n-1$.
 In general, the error in~\eqref{eq:glquad} can be bounded in terms of
 $\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or if $f$ is analytic on a domain $D$
 containing $(-1,1)$, in terms of $\sup_{z \in D} |f(z)|$
@@ -167,7 +168,8 @@ but did not study fast methods for large $n$.
 
 If we assume that the precision $p$ varies,
 then it is clear that any node and weight
-can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time,
+can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time%
+\footnote{We write $\OOtilde(x)$ for $\OO(x \, \log(x)^{\OO(1)})$.},
 by performing $\OO(\log p)$ Newton iterations \eqref{eq:newton}
 from an appropriate initial value.
 As a consequence, the
@@ -216,7 +218,7 @@ but unfortunately that algorithm
 also has high overhead~\cite{Johansson2014rectangular}.
 
 In this work, we study fast and practical computation for variable $n$
-and precision $p$ with rigorous error bounds.
+and precision~$p$ with rigorous error bounds.
 Our main contribution is to give a complete evaluation strategy
 for Legendre polynomials on $[-1,1]$ in ball arithmetic~\cite{vdH:ball,Johansson2017arb}.
 Computing the Legendre polynomial roots, then,
@@ -237,7 +239,7 @@ expansions that are preferable for different inputs and precision
 (including a well-known asymptotic expansion for large $n$),
 and their efficient evaluation.
 In Section \ref{sec:selection}, we propose a strategy to select the
-best formula for any combination of $n, p, x$.
+best formula for any combination of~$n, p, x$.
 
 Section~\ref{sec:bench} presents benchmark results
 that compare the performance
@@ -278,7 +280,7 @@ restrict to $0 \le x \le 1$.
 Some authors suggest working with $P_n(\cos(\theta))$ instead of $P_n(x)$
 directly to improve numerical stability for $x$ close to 1, but
 this is not necessary in arbitrary-precision arithmetic since
-a slight precision increase (of the order $\OO(\log n)$ bits)
+a slight precision increase (of the order of $\OO(\log n)$ bits)
 works as well.
 
 Note that, for rigorous evaluation of $P_n(z)$ with complex $z$
@@ -442,8 +444,8 @@ higher precision as needed.
 \label{sec:recurrence}
 
 For small $n$, a straightforward way to compute~$P_n(x)$ is to apply
-Bonnet's three-term recurrence \eqref{eq:recurrence},
-starting from $P_0(x)=1$ and $P_1(x) = x$.
+the three-term recurrence \eqref{eq:recurrence},
+starting from $P_0(x)=1$ and ${P_1(x) = x}$.
 Computing~$P_n(x)$ by this method takes about $(\MM(t) + \OO(t))\, n$
 bit operations, where $t$ is the working precision and $\MM(t)$ denotes the
 cost of $t$-bit multiplication.
@@ -577,8 +579,8 @@ and using the relations
 we see that \eqref{eq:rec-error} translates into
 \[ (1 - 2 xz + z^2) z \ddz \delta (z)
    = z (x - z) \delta (z) + z \eta (z). \]
-The solution of this differential equation with $\delta (0) = 0$ reads
-(cf.~\eqref{eq:generating-series})
+The solution of this differential equation with $\delta (0) = 0$ reads,
+cf.~\eqref{eq:generating-series},
 \[ \delta(z) = p(z)  \int_0^z \eta(w) \, p(w) \, dw,
    \qquad
    p(z) = \sum_{n=0}^{\infty} p_n z^n
@@ -721,7 +723,7 @@ whence the bound~\eqref{eq:bound-gmprec}.
 
 We currently do not use fast evaluation techniques for large~$n$ in
 combination with this recurrence, since the series expansions to be
-presented next work very well in this case.
+presented next perform very well in this case.
 
 \section{Series expansions}
 
@@ -932,8 +934,8 @@ multiplications.
 
 Our implementation uses ball arithmetic for $x$ and $s$
 so that no error analysis is needed, and we use a bignum type for $c$ (so
-no overflow can occur regardless of $u$);
-for low precision a faster implementation
+no overflow can occur regardless of $u$).
+For low precision a faster implementation
 would be possible using fixed-point arithmetic with tight
 control of the word-level operations
 as was done for elementary functions in~\cite{Johansson2015elementary}.
@@ -1025,7 +1027,7 @@ evaluation for precisions in the millions of bits.
 
 \subsection{Binomial coefficients}
 
-The prefactors of both the series expansion at $x = 0$ and the asymptotic series
+The prefactors of both the series expansion at ${x = 0}$ and the asymptotic series
 contain the central binomial coefficient ${2n \choose n}$.
 We need to compute this factor efficiently for any $n$ and precision $p$.
 Since ${2n \choose n} \approx 4^n$, it is best to use
@@ -1116,7 +1118,7 @@ recurrence and different
 series expansions.
 \item The dotted curves show the time using the main algorithm without
 the three-term recurrence as the basecase, i.e.\ using series expansions
-even for very small $n$.
+even for very small~$n$.
 \item The dashed curves show the time for fast multipoint
 evaluation of the expanded polynomials $P_n(x)$ and $P'_n(x)$.
 Technically, we expand
@@ -1126,8 +1128,8 @@ The polynomial coefficients are generated in advance using
 the hypergeometric recurrence and
 the fast multipoint evaluation is done using
 the Arb function \texttt{\_arb\_poly\_evaluate\_vec\_fast\_precomp}
-(where the ``precomp'' suffix indicates that
-the same product tree is used for both $P_n$ and $P'_n$).
+(the ``precomp'' suffix indicates that
+the same product tree is used for both $P_n$~and~$P'_n$).
 The fast multipoint evaluation is done with $2.9n$ guard bits,
 which was found experimentally to be sufficient for full accuracy.
 \end{itemize}
@@ -1159,7 +1161,7 @@ times faster for $n = 10^3$ and 30 times faster for $n = 10^4$.
 Conversely, fast multipoint evaluation
 with constant $p$ is a factor $\OO(n)$ slower due to the $\OO(n)$ extra precision.
 
-When $p \sim n$ (the three remaining plots in Figure~\ref{fig:benchplot}), the main algorithm
+When $p \propto n$ (the three remaining plots in Figure~\ref{fig:benchplot}), the main algorithm
 appears to show the same $\OO(n)$ speedup
 over the three-term recurrence after the crossover point, at least initially.
 This speedup should level off asymptotically, but
@@ -1265,15 +1267,15 @@ is shown in Table~\ref{tab:arprectimings}.
 \caption{Left columns: time in seconds to generate 1000-digit
 quadrature rules for the degrees~$n$ used by ARPREC.
 Right columns: for three different integrals, the
-error $|\int_{-1}^1 f(x) dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
+error $|\int_{-1}^1 f(x) \dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
 quadrature rule, and the time to evaluate this degree-$n$ approximation
 of the integral at 1000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
 \begin{center}
 \begin{tabular}{ r | c c | c c| c c | c c }
 $n$ & ARPREC & Our code &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
-    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) \dx$} &
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) \dx$} &
+    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) \dx$} \\
    &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
 \rule{0pt}{3ex}12 & 0.00520 & 0.000735 & $10^{-14}$ &       &   $10^{-1}$ &  &  $10^{-8}$ & \\
 24 & 0.0189 & 0.00197 & $10^{-28}$  &       &  $10^{-9}$  & &  $10^{-17}$ & \\
@@ -1298,9 +1300,9 @@ time given precomputed nodes.}
 \begin{center}
 \begin{tabular}{ c c c | c c | c c | c c }
 $h$ & $2n+1$ & Time &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
-    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\ 
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) \dx$} &
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) \dx$} &
+    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) \dx$} \\
    &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
 \rule{0pt}{3ex}$2^{-7}$ & 1989 & $0.07$ & $10^{-407}$ & 0.12 & $10^{-423}$ & 0.93 & $10^{-314}$ & 6.3 \\
 $2^{-8}$ & 3977 & $0.14$ & $10^{-814}$ & 0.25 & $10^{-909}$ & 1.75 & $10^{-630}$ & 13.0 \\
@@ -1470,7 +1472,7 @@ and satisfy three-term recurrence relations.
 The main obstacle might be
 to obtain large-$n$ asymptotic expansions with suitable error bounds.
 
-\paragraph*{Acknowledgements}
+\section*{Acknowledgements}
 
 We thank Bruno Salvy for pointing out Petras' paper~\cite{petras1999computation}.
 
