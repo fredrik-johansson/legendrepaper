@@ -4,7 +4,6 @@
 
 \usepackage[T1,T2A]{fontenc}
 \usepackage[utf8]{inputenc}
-%\usepackage{lmodern}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -12,31 +11,18 @@
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{hyperref}
-\usepackage{breqn}
 
-%\usepackage{amsthm}
-%\usepackage[margin=1.1in]{geometry}
+\newsiamremark{remark}{Remark}
 
 \DeclareUnicodeCharacter{00A0}{ }
-
-%\newtheorem{example}{Example}
-%\newtheorem{theorem}{Theorem}
-%\newtheorem{lemma}[theorem]{Lemma}
-%\newtheorem{remark}[theorem]{Remark}
-%\newtheorem{proposition}[theorem]{Proposition}
-%\newtheorem{corollary}[theorem]{Corollary}
-%\newtheorem{definition}[theorem]{Definition}
-%\newtheorem{conjecture}[theorem]{Conjecture}
-%\newtheorem{inequality}[theorem]{Inequality}
-%\newtheorem{axiom}[theorem]{Axiom}
-%\newtheorem{problem}[theorem]{Problem}
 
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \renewcommand{\baselinestretch}{1.00}
 
 \newcommand{\abs}[1]{\mathopen| #1 \mathclose|}
-\newcommand{\ddz}{\frac{d}{dz}}
+\newcommand{\dx}{\mathrm d x}
+\newcommand{\ddz}{\frac{\mathrm d}{\mathrm dz}}
 
 
 \newcommand{\OO}{\mathcal{O}}
@@ -81,14 +67,13 @@ of orthogonal polynomials with respect to the unit weight
 on the interval $(-1,1)$, normalized so that $P_n(1) = 1$.
 A more concrete definition is by the generating series
 \begin{equation} \label{eq:generating-series}
-  \sum_{n=0}^{\infty} P_n(x) z^n
+  F(x, z)
+  = \sum_{n=0}^{\infty} P_n(x) z^n
   = \frac{1}{\sqrt{1 - 2 x z + z^2}}.
 \end{equation}
 It is often convenient to introduce auxiliary
 variables~$\theta \in [0, \pi]$ and $y \in [0, 1]$ defined by
-$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$,
-where one might note that the roots of the polynomial $1 - 2 x z + z^2$ appearing
-in \eqref{eq:generating-series} are $e^{\pm i \theta} = x \pm i y$.
+$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$.
 
 Like other families of orthogonal polynomials, Legendre polynomials
 satisfy a three-term recurrence, in this case the relation
@@ -106,7 +91,7 @@ The definition implies that $P_n$ has $n$ roots all located in $(-1,1)$.
 Perhaps the most important application of Legendre polynomials
 is the Gauss-Legendre quadrature rule
 \begin{equation}
-\int_{-1}^{1} f(x) dx \approx \sum_{i=0}^{n-1} w_i f(x_i), \qquad
+\int_{-1}^{1} f(x) \dx \approx \sum_{i=0}^{n-1} w_i f(x_i), \qquad
 w_i = \frac{2}{(1-x_i^2) [P'_n(x_i)]^2},
 \label{eq:glquad}
 \end{equation}
@@ -119,21 +104,20 @@ mathematical physics, and experimental mathematics,
 it is necessary to compute integrals to an accuracy of
 hundreds of digits, and occasionally even tens of
 thousands of digits~\cite{bailey2011high}.
-The Gauss-Legendre formula is especially well suited for
-integration of smooth functions without endpoint singularities, where it
-achieves an accuracy of $p$ bits with $n = \OO(p)$ evaluation points.
-
-Indeed, it is well known that~\eqref{eq:glquad} is nearly optimal among
-all quadrature rules for integrands that are
+It is well known that the Gauss-Legendre formula~\eqref{eq:glquad} is nearly
+optimal among all quadrature rules for integrands that are
 well-approximated by polynomials, in particular for
-analytic $f$ without singularities close to
+analytic~$f$ without singularities close to
 the path of integration~\cite{kowalski1985gauss,trefethen2008gauss}.
 As a special case, the $n$-point rule~\eqref{eq:glquad} is exact
-when $f$ is any polynomial of degree at most $2n-1$.
+when $f$ is a polynomial of degree at most $2n-1$.
 In general, the error in~\eqref{eq:glquad} can be bounded in terms of
 $\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or if $f$ is analytic on a domain $D$
 containing $(-1,1)$, in terms of $\sup_{z \in D} |f(z)|$
 and the distance from the boundary of $D$ to $(-1,1)$.
+For integration of smooth functions without endpoint singularities,
+Gauss-Legendre quadrature achieves an accuracy of $p$ bits with $n = \OO(p)$
+evaluation points.
 Even when the conditions are not ideal for using \eqref{eq:glquad} directly,
 rapid convergence is often possible
 by combining~\eqref{eq:glquad}
@@ -187,7 +171,8 @@ but did not study fast methods for large $n$.
 
 If we assume that the precision $p$ varies,
 then it is clear that any node and weight
-can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time
+can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time%
+\footnote{We write $\OOtilde(x)$ for $\OO(x \, \log(x)^{\OO(1)})$.},
 by performing $\OO(\log p)$ Newton iterations \eqref{eq:newton}
 from an appropriate initial value.
 As a consequence, the full set of nodes and weights
@@ -195,7 +180,7 @@ for the degree-$n$ quadrature rule
 can be computed in $\OOtilde(n^2 p)$ time.
 For numerical integration of analytic functions
 where we typically have $p \sim n$, a better (indeed, optimal) estimate
-than the classical $\OOtilde(n^3)$ bound is possible:
+than the classical $\OOtilde(n^3)$ bound is possible.
 
 \begin{theorem}
 \label{thm:complexity}
@@ -203,29 +188,31 @@ If $p \sim n$, then the Gauss-Legendre nodes of degree $n$ can be computed to
 $p$-bit accuracy in $\OOtilde(n^2)$ (equivalently, $\OOtilde(p^2)$) bit operations.
 \end{theorem}
 
-\begin{proof}
-(Sketch.)
+\begin{proof}[Proof sketch]
 Using the formulas in~\cite{petras1999computation},
 we can compute good initial values for Newton iteration
 in $\OOtilde(n)$ bit operations.
 The Newton iteration can be performed for all roots
 simultaneously using fast multipoint evaluation, which costs
-$\OOtilde(n p)$ bit operations.
+$\OOtilde(n p)$ bit operations%
 Fast multipoint evaluation is numerically unstable and
 generically loses $\OO(n)$ bits of accuracy, but we can compensate for
-this loss by using $\OO(n)$ guard bits
-(since $p \sim n$ by assumption, this does not change the complexity bound)~\cite{kobel2013fast}.
+this loss by using $\OO(n)$ guard bits.
+Since $p \sim n$ by assumption, this does not change the complexity bound~\cite{kobel2013fast}.
 \end{proof}
 
 Completing the details
 of the proof is a technical exercise.
-Unfortunately, despite being elegant in theory,
+Despite being elegant in theory,
 the algorithm behind Theorem~\ref{thm:complexity} has high overhead
 in practice, in large part due to the need to work
 with greatly increased precision.
 Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
 makes parallelization difficult.
+See Section~\ref{sec:serieseval} below for an alternative approach--also
+unlikely to be practical except for extremely large~$p$---that leads to a
+similar complexity bound.
 We can achieve a slightly worse but still subcubic
 complexity of $\OOtilde(n^{5/2})$
 by employing
@@ -235,7 +222,7 @@ but unfortunately that algorithm
 also has high overhead~\cite{Johansson2014rectangular}.
 
 In this work, we study fast and practical computation for variable $n$
-and precision $p$ with rigorous error bounds.
+and precision~$p$ with rigorous error bounds.
 Our main contribution is to give a complete evaluation strategy
 for Legendre polynomials on $[-1,1]$ in ball arithmetic~\cite{vdH:ball,Johansson2017arb}.
 Computing the Legendre polynomial roots, then,
@@ -245,10 +232,9 @@ the interval Newton method~\cite{moore1979methods}.
 
 Our algorithm for evaluating Legendre polynomials switches between
 different methods.
-In Section~\ref{sec:recurrence},
-we prove practical error bounds for the standard three-term recurrence,
-which can be efficiently implemented
-in fixed-point arithmetic.
+In Section~\ref{sec:recurrence}, we prove practical error bounds for
+the three-term recurrence~\eqref{eq:recurrence}, which can be
+efficiently implemented in fixed-point arithmetic.
 This method is ideal for $n$ and~$p$ up to a few hundred.
 For larger $n$ or $p$, we use a fast method for evaluation
 of hypergeometric series.
@@ -257,13 +243,14 @@ expansions that are preferable for different inputs and precision
 (including a well-known asymptotic expansion for large $n$),
 and their efficient evaluation.
 In Section \ref{sec:selection}, we propose a strategy to select the
-best formula for any combination of $n, p, x$.
+best formula for any combination of~$n, p, x$.
 
 Section~\ref{sec:bench} presents benchmark results
 that compare the performance
 of our algorithm
 to some previous implementations
 as well as the asymptotically fast algorithm in Theorem~\ref{thm:complexity}.
+
 For generating Gauss-Legendre quadrature rules with $n \sim p$,
 our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
 classical methods. However, our algorithm has much lower overhead,
@@ -298,7 +285,7 @@ restrict to $0 \le x \le 1$.
 Some authors suggest working with $P_n(\cos(\theta))$ instead of $P_n(x)$
 directly to improve numerical stability for $x$ close to 1, but
 this is not necessary in arbitrary-precision arithmetic since
-a slight precision increase (of the order $\OO(\log n)$ bits)
+a slight precision increase (of the order of $\OO(\log n)$ bits)
 works as well.
 
 We note that, for rigorous evaluation of $P_n(z)$ with complex $z$
@@ -314,57 +301,123 @@ A simple option is to deduce $P'_n(x)$ from
 $P_n(x)$ and $P_{n-1}(x)$ using \eqref{eq:mixed}.
 When $x$ is close to~$1$, though, this formula involves a
 cancellation of about $\abs{\log_2(1 - x)}$ bits in the subtraction,
-followed by a division by $x^2 - 1$, so that a direct evaluation
+followed by a division by $x^2 - 1$. Therefore, a direct evaluation
 of $P'_n(x)$ may be preferable to reduce the working precision.
 
 Our evaluation algorithms rely on ball arithmetic internally to
 propagate the error bounds up to the final result.
 Since some methods would produce unsatisfactorily large enclosures
-when executed on input balls of radius $r > 0$, we evaluate $P_n(m)$
-(with higher internal precision if necessary) and use a first-order
-bound
+when executed on input balls $[x \pm r]$ of radius $r > 0$, we
+evaluate $P_n(m)$ (with higher internal precision if necessary) and
+use a first-order bound
 \[ \max_{\xi \in x} |P_n(\xi) - P_n(m)|
    \le r \max_{\xi \in x} |P'_n(\xi)| \]
 to separately bound the propagated error.
 Similarly, we use a bound for $P''_n$ to compute a reasonably
 tight enclosure for $P'_n([m \pm r])$.
-Suitable bounds are given in the next lemma.
+Suitable bounds are given in Proposition~\ref{prop:prop-bound} below.
 
-\begin{lemma} \label{lemma:prop-bound}
-For $-1 \leq x \leq 1$, we have
-\begin{align}
-\label{eq:prop-bound}
-  |P_n'(x)| &\le \min\left(\frac{n(n+1)}{2},
-                          \frac{n}{\sqrt{1-x^2}}\right), \\
-\label{eq:prop-bound1}
-  |P_n''(x)| &\le \min\left(\frac{(n+2)(n+1)n(n-1)}{8},
-                           \frac{2|x||P_n'(x)| + n(n+1)}{1-x^2}\right).
-\end{align}
+\begin{lemma} \label{lemma:majorants}
+Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
+series $f(z)$, and write $f(z) \ll_z \hat f(z)$ if
+$| [z^n] f(z) | \leq [z^n] \hat f(z)$ for all $n$.
+If $f$, $g$, $\hat f$, $\hat g$ are such that
+$f(z) \ll_z \hat f(z)$ and $g(z) \ll_z \hat g(z)$, then we also have
+$\int_0^z f \ll_z \int_0^z \hat f$ and
+$f(z)g(z) \ll_z \hat f(z) \hat g(z)$.
 \end{lemma}
 
-\begin{proof}
-%$$|p^{(d)}(x)| \le \left(\frac{2n}{\sqrt{1-x^2}}\right)^d$$
-%Markov: $$|p^{(d)}(x)| \le (n(n-1)\cdots(n-d+1))^2$$
+\begin{proposition} \label{prop:prop-bound}
+The following bounds hold for $-1 \leq x \leq 1$:
+\begin{align}
+\label{eq:prop-bound}
+  |P_n'(x)| &\le \min\left(
+      \frac{2^{3/2}}{\sqrt{\pi}} \frac{\sqrt n}{(1-x^2)^{3/4}},
+      \frac{n(n+1)}{2}
+  \right), \\
+\label{eq:prop-bound1}
+  |P_n''(x)|
+  &\le \min\left(
+      \frac{2^{5/2}}{\sqrt{\pi}} \frac{n^{3/2}}{(1-x^2)^{5/4}},
+      \frac{(n-1) n (n+1) (n+2)}{8}
+  \right).
+\end{align}
+\end{proposition}
 
-Using the Bernstein inequality (\cite{borwein2012polynomials}, chapter 5)
-and the fact that $|P^{(d)}_n(x)| \le |P^{(d)}_n(1)|$ for $-1 \le x \le 1$,
-we have~\eqref{eq:prop-bound}
-and contiguous relations yield~\eqref{eq:prop-bound1}.
+\begin{proof}
+Let $F(x, z)$ be the generating series~\eqref{eq:generating-series}, and write
+\[
+  \sum_{n=0}^{\infty} P'_n(x) z^n
+  = \frac{\mathrm d F(x, z)}{\mathrm d x}
+  = \frac{z F(x, z)}{1 - 2 x z + z^2},
+  \qquad
+  \sum_{n=0}^{\infty} P''_n(x) z^n
+  = \frac{3 z^2 F(x, z)}{(1 - 2 x z + z^2)^2}.
+\]
+Set $\theta = \arccos x$, so that the roots of $1 - 2 x z + z^2$
+are $e^{\pm i \theta}$.
+Then, in the notation of Lemma~\ref{lemma:majorants}, we have the bound
+\[ \frac{1}{1 - 2 x z + z^2}
+   = \frac{1}{2 i \sin \theta} \left( \frac{1}{z - e^{i \theta}} -
+                                      \frac{1}{z - e^{-i \theta}} \right)
+   = \sum_{n=0}^{\infty} \frac{\sin\bigl((n+1) \theta\bigr)}{\sin(\theta)} z^n
+   \ll_z \frac{\sin(\theta)^{-1}}{1 - z}. \]
+In addition, Bernstein's inequality for the Legendre polynomials
+(see, e.g.,~\cite{ChowGatteschiWong1994})
+combined with the logarithmic convexity of the Gamma function yields
+\[ |P_n(x)| \leq \frac{\sqrt{2}}{\sqrt{\pi}} \frac{1}{\sqrt{\sin \theta}}
+                 \frac{1}{\sqrt{n+1/2}}
+            \leq \frac{\sqrt 2}{\sqrt{\pi}} \frac{1}{\sqrt{\sin \theta}}
+                 \frac{\Gamma(n+1/2)}{\Gamma(n+1)},
+\]
+and hence
+\[ F(x, z) \ll_z \frac{\sqrt{2}}{\sqrt{\sin \theta}}
+               \sum_{n=0}^{\infty} \frac{1}{\sqrt{\pi}}
+                                  \frac{\Gamma(n+1/2)}{\Gamma(n+1)} z^n
+            = \frac{\sqrt{2}}{\sqrt{\sin \theta}}
+              \frac{1}{\sqrt{1-z}}. \]
+By Lemma~\ref{lemma:majorants}, these bounds combine into
+\[ \frac{\mathrm d F}{\mathrm d x}
+   \ll_z \frac{\sqrt{2}}{\sin(\theta)^{3/2}} \frac{1}{(1-z)^{3/2}},
+   \qquad
+   \frac{\mathrm d^2 F}{\mathrm d x^2}
+   \ll_z \frac{\sqrt{2}}{\sin(\theta)^{5/2}} \frac{3 z^2}{(1-z)^{5/2}}. \]
+Since
+$[z^n] (1 - z)^{- k - 1/2} = \Gamma(n + 1/2)/(\Gamma(k+1/2) \Gamma(n - k + 1))$
+and using again the logarithmic convexity of~$\Gamma$, we conclude
+that
+\[ |P'_n(x)| \leq \frac{\sqrt{2}}{\sin(\theta)^{3/2}}
+                  \frac{2}{\sqrt{\pi}} \frac{\Gamma(n+1/2)}{\Gamma(n)}
+             \leq \frac{2^{3/2}}{\sqrt{\pi}} \frac{\sqrt n}{\sin(\theta)^{3/2}},
+   \qquad
+   |P''_n(x)| \leq \frac{2^{5/2}}{\sqrt{\pi}} \frac{n^{3/2}}{(1-x^2)^{5/4}}.
+\]
+The result follows since all derivatives of Legendre polynomials reach
+their maximum at~$x=1$ (or by using the bounds
+$(z - e^{\pm i \theta})^{-1}, F(x, z) \ll_z (1-z)^{-1}$
+and Lemma~\ref{lemma:majorants}).
 \end{proof}
 
-Thus, from now on, we assume that $x$~is a floating-point number with
-$0 \leq x \leq 1$.
+\begin{remark}
+By the same reasoning, the inequality
+\[ |P^{(k)}_n(x)| \leq \frac{2^{k+1/2}}{\sqrt{\pi}}
+                       \frac{n^{k-1/2}}{(1 - x^2)^{(2n+1)/4}} \]
+actually holds for all~$k$. Unfortunately, it seems to
+overestimate~$|P^{(k)}|$ by a factor about~$2^k$.
+\end{remark}
+
+Based on these reductions, we assume from now on that $x$~is a
+floating-point number with $0 \leq x \leq 1$.
 Our main algorithm for evaluating~$P_n$ at~$x$ combines the following
 methods:
 \begin{itemize}
   \item the iterative computation of~$P_n(x)$
   via the three-term recurrence~\eqref{eq:recurrence},
   \item an asymptotic expansion of $P_n(x)$ as~$n \to \infty$,
-  \item the usual terminating expansion of $P_n$ in the monomial
-  basis,
-  \item a similar terminating expansion at~$1$.
+  \item the usual expanded expression of $P_n$ in the monomial basis,
+  \item the analogous terminating expansion at~$1$.
 \end{itemize}
-Up to simple prefactors, all three expansions are hypergeometric
+All three expansions can be written as hypergeometric
 series, i.e., sums of the form $\sum_k c_k \xi^k$ where $c_k/c_{k-1}$
 is a rational function of~$k$.
 
@@ -396,24 +449,14 @@ higher precision as needed.
 \label{sec:recurrence}
 
 For small $n$, a straightforward way to compute~$P_n(x)$ is to apply
-Bonnet's three-term recurrence \eqref{eq:recurrence},
-starting from $P_0(x)=1$ and $P_1(x) = x$.
+the three-term recurrence \eqref{eq:recurrence},
+starting from $P_0(x)=1$ and ${P_1(x) = x}$.
 Computing~$P_n(x)$ by this method takes about $(\MM(t) + \OO(t))\, n$
 bit operations, where $t$ is the working precision and $\MM(t)$ denotes the
 cost of $t$-bit multiplication.
 It is thus attractive for small $n$ and $t$, especially when both
 $P_n(x)$ and $P'_n(x)$ are needed, since we can get $P_{n-1}(x)$ at no
 additional cost.
-
-In a direct implementation of this recurrence in ball arithmetic, the
-width of the enclosures would roughly double at every iteration,
-requiring to increase the internal working precision by $\OO(n)$ bits.
-We avoid this issue by performing a pen-and-paper round-off error
-analysis of the evaluation that yields a less pessimistic bound on the
-accumulated error.
-Additionally, the static error bound allows us to implement the
-recurrence in fixed-point arithmetic, avoiding the overhead of
-interval operations.
 
 Fix $x \in [-1, 1]$, and let $p_n = P_n(x)$.
 Bonnet's formula~\eqref{eq:recurrence} gives
@@ -423,7 +466,16 @@ Bonnet's formula~\eqref{eq:recurrence} gives
     \bigl( (2n +1) x p_n - n p_{n-1} \bigr),
   \qquad n \geq 0.
 \end{equation}
-We implement this recurrence as follows.
+In a direct implementation of this recurrence in ball arithmetic, the
+width of the enclosures would roughly double at every iteration,
+requiring to increase the internal working precision by $\OO(n)$ bits.
+We avoid this issue by performing a pen-and-paper round-off error
+analysis of the evaluation that yields a less pessimistic bound on the
+accumulated error.
+Additionally, the static error bound allows us to implement the
+recurrence in fixed-point arithmetic, avoiding the overhead of
+floating-point and interval operations.
+
 Suppose $x = \hat x \, 2^{-t}$ with $\hat x \in \mathbb Z$.
 Let $\lceil u \rfloor$ denote the integer truncation of a real
 number~$u$ (any other rounding function would do).
@@ -437,7 +489,7 @@ The integer sequence $(\hat p_n)$ defined by
     \right\rfloor
 \end{equation}
 is easy to compute using only integer arithmetic, and
-$\hat p_n \, 2^{-t}$ is an approximation of $p_n$.
+$\hat p_n \, 2^{-t}$ is an approximation of~$p_n$.
 Algorithm~\ref{alg:gmprec} provides a complete C implementation
 using GMP~\cite{granlund2017}.
 As a small optimization, we delay the division by~$n+1$ until we have
@@ -450,13 +502,12 @@ accumulated a denominator of the size of a machine word.
   \label{alg:gmprec}
   \begin{algorithmic}[1]
     \Require An integer $x$ and $t \ge 0$ such that $|2^{-t} x| \le 1$, and $n \ge 1$
-    \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.625 \, (n+1)(n+2) + 1) \, 2^{-t}$
+    \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.75 \, (n+1)(n+2) + 1) \, 2^{-t}$
   \end{algorithmic}
 \begin{verbatim}
-void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t)
-{
-    mpz_t tmp;  int k;  mpz_init(tmp);
-    unsigned long d = 1;
+void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {
+    mpz_t tmp; int k; mpz_init(tmp);
+    mp_limb_t denlo, den = 1;
     mpz_set_ui(p, 1);
     mpz_mul_2exp(p, p, t);
     mpz_set(q, x);
@@ -466,12 +517,13 @@ void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t)
         mpz_mul_si(p, p, -k*k);
         mpz_addmul_ui(p, tmp, 2*k+1);
         mpz_swap(p, q);
-        d *= k;
-        if (d >= (1ul << (GMP_LIMB_BITS - BIT_COUNT(n)))) {
-          mpz_tdiv_q_ui(p, p, d);   mpz_tdiv_q_ui(q, q, d);  d = 1;
-        }
+        if (mpn_mul_1(&denlo, &den, 1, k+1)) {
+            mpz_tdiv_q_ui(p, p, den);
+            mpz_tdiv_q_ui(q, q, den);
+            den = k+1;
+        } else den = denlo;
     }
-    mpz_tdiv_q_ui(p, p, d);  mpz_tdiv_q_ui(q, q, d*n);
+    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);
     mpz_clear(tmp);
 }
 \end{verbatim}
@@ -481,8 +533,7 @@ To bound the difference $\abs{\hat p_n \, 2^{-t} - p_n}$, we analyze
 the effect on the result of a small perturbation in each iteration
 of \eqref{eq:rec-bis}.
 The bound is based on a classical linearity argument (compare, e.g.,
-\cite{Wimp1984}) combined with generating and majorant series
-techniques.
+\cite{Wimp1984}) combined with majorant series techniques.
 
 \begin{proposition} \label{prop:rec-error}
 Suppose that a sequence $(\tilde p_n)_{n \geq -1}$ satisfies
@@ -533,25 +584,18 @@ and using the relations
 we see that \eqref{eq:rec-error} translates into
 \[ (1 - 2 xz + z^2) z \ddz \delta (z)
    = z (x - z) \delta (z) + z \eta (z). \]
-The solution of this differential equation with $\delta (0) = 0$ reads
-\[ \delta(z) = p(z)  \int_0^z \eta(w) \, p(w) \, dw \]
-where, cf. \eqref{eq:generating-series},
-\[ p(z) = \sum_{n=0}^{\infty} p_n z^n
+The solution of this differential equation with $\delta (0) = 0$ reads,
+cf.~\eqref{eq:generating-series},
+\[ \delta(z) = p(z)  \int_0^z \eta(w) \, p(w) \, dw,
+   \qquad
+   p(z) = \sum_{n=0}^{\infty} p_n z^n
+        = F(x, z)
         = \frac{1}{\sqrt{1 - 2 xz + z^2}}. \]
 This is an exact expression of the ``global'' error $\delta$ in terms
 of the ``local'' errors~$\varepsilon_n$.
-
-Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
-series $f(z)$.
-If $f$, $g$, $\hat f$, $\hat g$ are power series such that
-$\abs{[z^n] f} \leq [z^n] \hat f$ and
-$\abs{[z^n] g} \leq [z^n] \hat g$
-for all $n$, then also
-$\abs{[z^n] \int_0^z f} \leq [z^n] \int_0^z \hat f$ and
-$\abs{[z^n] (fg)} \leq [z^n] (\hat f \hat g)$.
 Since $\abs{p_n} = \abs{P_n(x)} \leq 1$
 and $\abs{\eta_n} \leq (n+1) \bar \varepsilon$,
-it follows that
+it follows by Lemma \ref{lemma:majorants} that
 \[
   \abs{\delta_n}
   = \left| [z^n] \left( p(z)  \int_0^z \eta(w) \, p(w) \, dw \right) \right|
@@ -570,19 +614,19 @@ and therefore
 \begin{corollary}
 Suppose that $x = \hat x \, 2^{-t}$ for some $t \geq 0$ and
 $\hat x \in \mathbb Z$.
-The sequence $(p_n)_{n \geq 0}$ defined by \eqref{eq:rec-fxpt}
+The sequence $(\hat p_n)_{n \geq 0}$ defined by \eqref{eq:rec-fxpt}
 satisfies
-\[
+\begin{equation} \label{eq:bound-fxprec}
   \abs{ \hat p_n 2^{-t} - p_n }
   \leq 0.75 \, (n+1) (n+1) \, 2^{-t},
   \qquad
   n \geq 0.
-\]
-The quantities $p$, $q$ returned by Algorithm~\ref{alg:gmprec}
-satisfy
+\end{equation}
+Furthermore, the quantities $p$, $q$ returned by Algorithm~\ref{alg:gmprec}
+are such that
 \begin{equation} \label{eq:bound-gmprec}
   |p - 2^t P_{n-1}(x)|, |q - 2^t P_{n}(x)|
-  \le 0.625 (n+1)(n+2) + 1.
+  \le 0.75 (n+1)(n+2) + 1.
 \end{equation}
 \end{corollary}
 
@@ -604,78 +648,93 @@ hence
 where $\abs{\varepsilon_n} \leq 3$.
 Proposition \ref{prop:rec-error} applied to
 $\tilde p_n = \hat p_n \, 2^{-t}$
-then provides the desired bound.
+then provides the bound~\eqref{eq:bound-fxprec}.
 
 \newcommand{\vp}{\mathtt p}
 \newcommand{\vq}{\mathtt q}
 \newcommand{\vd}{\mathtt d}
 
 Turning to Algorithm~\ref{alg:gmprec},
-let $\vp_k$, $\vq_k$, $\vd_k$ denote the values of the variables
-$\vp$, $\vq$, $\vd$ at the end of iteration~$k$,
-and $\vp_0$, $\vq_0$, $\vd_0$ their values before the loop.
+let $\vp_0$, $\vq_0$, $\vd_0$ denote the values of the variables
+$\vp$, $\vq$, $\mathtt{den}$ before the loop,
+and $\vp_k$, $\vq_k$, $\vd_k$ their values at the end of iteration~$k$.
 Consider the sequence
-$\tilde p_k = \vq_{k-1} 2^{-t}/(k \vd_{k-1})$, $k \geq 1$,
+$\tilde p_k = 2^{-t} \vq_{k-1}/\vd_{k-1}$, $k \geq 1$,
 extended by $\tilde p_0 = 1$ and an arbitrary~$\tilde p_{-1}$.
-For all $k \geq 1$,
-depending whether the conditional branch is taken, we have either
-\begin{align*}
+For all $k \geq 1$, depending whether the conditional branch is taken, we
+have one of the systems of equations
+\begin{align}
   \vp_k &= \vq_{k-1}, &
   \vq_k &= (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor
           - k^2 \vp_{k-1}, &
-  \vd_k &= k \vd_{k-1} \\
-\intertext{or}
-  \vp_k &= \left\lceil \frac{\vq_{k-1}}{k \vd_{k-1}} \right\rfloor, &
+  \vd_k &= (k+1) \vd_{k-1} \\
+  \vp_k &= \left\lceil \frac{\vq_{k-1}}{\vd_{k-1}} \right\rfloor, &
   \vq_k &= \left\lceil \frac{
           (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor - k^2 \vp_{k-1}}
-          {k \vd_{k-1}} \right\rfloor, &
-  \vd_k &= 1.
-\end{align*}
-In both cases, for some $\alpha_k, \beta_k, \gamma_k$ with
-$|\alpha_k|, |\beta_k|, |\gamma_k| \leq 1$, we have
+          {\vd_{k-1}} \right\rfloor, &
+  \vd_k &= k+1.
+\end{align}
+% either
+% \begin{align*}
+%   \vp_k &= \vq_{k-1}, &
+%   \vq_k &= (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor
+%           - k^2 \vp_{k-1}, &
+%   \vd_k &= (k+1) \vd_{k-1} \\
+% \intertext{or}
+%   \vp_k &= \left\lceil \frac{\vq_{k-1}}{\vd_{k-1}} \right\rfloor, &
+%   \vq_k &= \left\lceil \frac{
+%           (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor - k^2 \vp_{k-1}}
+%           {\vd_{k-1}} \right\rfloor, &
+%   \vd_k &= k+1.
+% \end{align*}
+In both cases, we can write
 \begin{align*}
   \frac{\vp_k}{\vd_k}
-  &= \frac{\vq_{k-1}}{k \vd_{k-1}} + \alpha_k
-   = \tilde p_k + \alpha_k, &
+  &= \frac{\vq_{k-1}}{(k+1) \vd_{k-1}} + \frac{\alpha_k}{k+1}
+   % = \tilde p_k + \alpha_k, &
+   &
   \frac{\vq_k}{\vd_k}
   &= \frac{ (2k+1) (x \vq_{k-1} + \beta_k) - k^2 \vp_{k-1} }
-          { k \vd_{k-1} }
-     + \gamma_k
+          { (k+1) \vd_{k-1} }
+     + \frac{\gamma_k}{k+1}
 \end{align*}
-and hence
-\begin{dmath*}
+with $|\alpha_k|, |\beta_k|, |\gamma_k| \leq 1$.
+The first equation implies
+$2^{-t} k \, \vp_{k-1}/\vd_{k-1} = \tilde p_{k-1} + \alpha_{k-1} 2^{-t}$
+for $k \geq 2$.
+Since the latter equality also holds for $k = 1$ with $\alpha_0 = 0$, we can
+substitute it in the second equation, yielding
+\[
   \tilde p_{k+1}
-  = \frac{\vq_k 2^{-t}}{(k+1) \vd_k}
+  % = \frac{\vq_k}{\vd_k} 2^{-t}
   = \frac{ (2k+1) x \tilde p_k - k \tilde p_{k-1} }{k+1}
-     + \left(
-        - \frac{k}{k+1} \alpha_k
-        + \frac{2k + 1}{k (k+1) \vd_{k-1}} \beta_k
-        + \frac{1}{k+1} \gamma_k
-       \right) 2^{-t}.
-\end{dmath*}
-The same equality holds for $k=0$, with
-$\alpha_0 = \beta_0 = \gamma_0 = 0$.
-Thus, $\tilde p_k$ satisfies~\eqref{eq:rec-pert} with
-$\bar\varepsilon = 2.5 \cdot 2^{-t}$, and we have
-$|\tilde p_k - P_k(x)| \leq 0.625 (k+1)(k+2) 2^{-t}$
-by Proposition \ref{prop:rec-error}.
+     + 2^{-t} \left(
+          \frac{-k \alpha_{k-1}}{k+1}
+        + \frac{(2k + 1) \beta_k}{(k+1) \vd_{k-1}}
+        + \frac{\gamma_k}{k+1}
+       \right).
+\]
+This relation holds for $k \geq 1$, and we extend it to $k=0$ by setting
+$\beta_0 = \gamma_0 = 0$.
+Thus, $\tilde p_k$ also satisfies~\eqref{eq:rec-pert} with
+$|\varepsilon_n| \leq 3 \cdot 2^{-t}$, and Proposition \ref{prop:rec-error} applies.
 The final values of $\vq$~and~$\vp$ are respectively
 $\lceil 2^t \tilde p_n \rfloor$
 and
-$\lceil \vp_{n-1}/\vd_{n-1} \rfloor
-= \lceil \tilde 2^t \tilde p_{n-1} + \alpha_{n-1} \rfloor$,
+$\lceil n \vp_{n-1}/\vd_{n-1} \rfloor
+= \lceil 2^t \tilde p_{n-1} + \alpha_{n-1} \rfloor$,
 whence the bound~\eqref{eq:bound-gmprec}.
 \end{proof}
 
 We do not use asymptotically faster evaluation techniques for large~$n$ in
 combination with this recurrence, since the series expansions to be
-presented next work very well in this case.
+presented next perform very well in this case.
 
 \section{Series expansions}
 
 \label{sec:series}
 
-For large $n$ or $p$, we use series expansions of $P_n(x)$ with
+For large $n$ or $p$, we employ series expansions of $P_n(x)$ with
 respect to either $n$ or $x$ rather than the algorithm from the
 previous section.
 The coefficients of the series are also computed by recurrence,
@@ -688,9 +747,11 @@ and $x=1$), and then discuss their efficient evaluation.
 
 \subsection{Asymptotic series}
 
+\label{sec:series-asy}
+
 For fixed $|x| < 1$ or equivalently $x = \cos(\theta)$ with $0 < \theta < \pi$,
 an asymptotic expansion for $P_n(x)$ as $n \to \infty$
-can be given as (\cite{Bogaert2012}, (3.4))
+can be given as \cite[Eq.~3.4]{Bogaert2012}
 \begin{equation}
 \label{eq:asymptotic}
 P_n(\cos(\theta)) = \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2}
@@ -709,10 +770,8 @@ and the error term satisfies
 \label{eq:truncerr0}
 |\xi_{n,K}(\theta)| < 2 \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2} \frac{C_{n,K}}{\sin^K(\theta)}.
 \end{equation}
-
 The coefficients $C_{n,k}$ are a hypergeometric sequence with
 $$\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.$$
-
 To evaluate the error bound, we can use the following inequality for $n, k \ge 1$:
 \begin{equation}
 \label{eq:truncerr0b}
@@ -747,6 +806,8 @@ guard bits to the working precision.
 
 \subsection{Expansion at zero}
 
+\label{sec:series-zero}
+
 If $n = 2d$ is even, the expansion of $P_n(x)$ on the monomial basis
 reads
 $$P_{2d}(x) = (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} = \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k,$$
@@ -776,13 +837,15 @@ $f_0 = 1$, $f_1 = |z|$ shows that
 Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
 is about
 \begin{equation}
-p_A = n \log_2(|x| + \sqrt{1 + |x|^2})
+p_A = n \log_2\bigl(|x| + \sqrt{1 + |x|^2}\bigr)
 \end{equation}
-bits (which is at most $(\log_2 (1+\sqrt{2})) n \approx 1.27156n$),
+bits (which is at most $(\log_2 (1+\sqrt{2})) \, n \approx 1.27156n$),
 so using ball arithmetic with about $p + p_A$ bits of working precision
 for the series evaluation gives $p$-bit accuracy.
 
 \subsection{Expansion at one}
+
+\label{sec:series-one}
 
 Expanding at $x = 1$ yields
 $$P_n(x) = \sum_{k=0}^n c_{n,k} u^k, \quad c_{n,k} = {n \choose k} {n+k \choose k}$$
@@ -790,7 +853,6 @@ where $u = (x-1)/2$.
 The coefficients $c_{n,k}$ are hypergeometric with
 ratio $c_{n,k}/c_{n,k-1} = (n-k+1)(n+k)/k^2$
 and initial value $c_{n,0} = 1$.
-
 If the series is truncated after the $k = K - 1$ term,
 the error is bounded by
 \begin{equation}
@@ -802,8 +864,10 @@ For $u \ge 0$, the series does not suffer from cancellation.
 For $u < 0$, we can estimate the amount of
 cancellation from the magnitude of $P_n(x')$ where $|u| = (x'-1)/2$.
 For not too large $x' \ge 1$, a very good approximation is
-$$P_n(x') \approx \sum_{k=0}^{\infty} \frac{n^{2k}}{(k!)^2} u^k = I_0(2n\sqrt{u}) \approx e^{2n\sqrt{u}}.$$
-We therefore need about $2n\sqrt{\max(0,-u)} / \log(2)$ bits
+\[ P_n(x') \leq 2 \sum_{k=0}^{\infty} \frac{n^{2k}}{k!^2} |u|^k
+           = 2\,I_0(2n\sqrt{|u|})
+           \leq 2\,e^{2n\sqrt{|u|}}. \]
+We therefore need about $2n\sqrt{\max(0,-u)} / \ln(2)$ bits
 of increased precision when evaluating the series.
 
 We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
@@ -836,26 +900,6 @@ by small integer coefficients)
 and about $2\sqrt{K}$ expensive nonscalar operations (general multiplications),
 whereas direct evaluation of the hypergeometric
 recurrence requires $\OO(K)$ expensive operations.
-
-Due to the scalar operations, rectangular splitting ultimately
-requires $\OO(K)$ arithmetic operations with $\OOtilde(p)$ bit complexity
-each
-just like straightforward evaluation of the recurrence, so it is
-not a genuine asymptotic improvement, but
-it is an improvement in practice and
-can give more than a factor 100 speedup at very high precision.
-It is possible to genuinely reduce the complexity of evaluating
-a hypergeometric sequence to $\OO(\sqrt{K} \log(K))$ arithmetic
-operations using a baby-step giant-step method
-that employs fast multipoint evaluation,
-but in practice rectangular splitting
-performs better until both $K$ and~$p$
-exceed $10^6$ (see \cite{Johansson2014rectangular}).
-
-Another technique for fast evaluation of hypergeometric series,
-binary splitting, would be useful when $p$ is large and the
-argument $x$ is a rational number with small numerator and denominator,
-but this case is not relevant for our application.
 
 \begin{algorithm}[h!]
   %\algsetup{linenosize=\tiny}
@@ -904,8 +948,8 @@ multiplications.
 
 Our implementation uses ball arithmetic for $x$ and $s$
 so that no error analysis is needed, and we use a bignum type for $c$ (so
-no overflow can occur regardless of $u$);
-for low precision a faster implementation
+no overflow can occur regardless of $u$).
+For low precision a faster implementation
 would be possible using fixed-point arithmetic with tight
 control of the word-level operations
 as was done for elementary functions in~\cite{Johansson2015elementary}.
@@ -936,9 +980,68 @@ Setting $\Omega = 1$ and adding the constant term separately
 avoids having to make a special case to prevent division by zero
 when $q(0) = 0$.
 
+Due to the scalar operations, rectangular splitting ultimately
+requires $\OO(K)$ arithmetic operations with $\OOtilde(p)$ bit complexity
+each
+just like straightforward evaluation of the recurrence, so it is
+not a genuine asymptotic improvement, but
+it is an improvement in practice and
+can give more than a factor 100 speedup at very high precision.
+It is possible to genuinely reduce the complexity of evaluating
+a hypergeometric sequence to $\OO(\sqrt{K} \log(K))$ arithmetic
+operations using a baby-step giant-step method
+that employs fast multipoint evaluation,
+but in practice rectangular splitting
+performs better until both $K$ and~$p$
+exceed $10^6$ (see \cite{Johansson2014rectangular}).
+
+Another technique for fast evaluation of hypergeometric series,
+binary splitting, would be useful when $p$ is large and the
+argument $x$ is a rational number with small numerator and denominator,
+but this case is not relevant for our application.
+
+Binary splitting also forms the basis of the bit-burst
+method~\cite[Section 4]{ChudnovskyChudnovsky1990}, which permits
+evaluating any fixed fixed hypergeometric series at any fixed point to
+absolute precision~$p$ in only~$\OOtilde(p)$ bit operations.
+Computing~$P_n(x)$ by this method would require $\OO(\log p)$ analytic
+continuation steps, each of which would entail two evaluations of
+general solutions of the Legendre differential equations, given by
+power series of radius of convergence $1 - |x|$ whose coefficients
+obey recurrences of order two.
+This is to be compared with a single series, given by a first-order
+recurrence and typically converging faster, for the expansions
+considered in Sections \ref{sec:series-asy}~to~\ref{sec:series-one}.
+Thus, the bit-burst method is unlikely to be competitive in the range
+of precision we are interested in, especially when the asymptotic
+series can be used.
+
+Nevertheless, it can be shown that the solutions with unit initial
+values at~$x_0$ of the Legendre equation have Taylor
+coefficients~$c_k$ at~$x_0$ bounded by
+$(n^2/(1-|x_0|))^{\OO(k)}$
+uniformly in $n$~and~$x_0$.
+% Proof sketch: The Legendre equation (in matrix form, say) is
+% majorized by something of the form
+%     g'(t) = O(n²)/(1-|x₀|-t) g(t)
+% whose solution has coefficients that grow like
+%     (n²/(1-|x₀|))^O(k).
+As a consequence, the cost of computing any individual root of
+$P_n(x)$ by the bit-burst method and Newton iteration is
+$\OOtilde(p) \, \log(n)^{\OO(1)}$.
+% Because we can get within O((1-|x|)/n²) of any root x_k by a single
+% evaluation of the series at 0 or 1 at a point of bit size
+% O(log(np)), and subsequent bit-burst steps will cost Õ(p)·log(n).
+For computing all the roots, this approach matches the $\OOtilde(np)$
+estimate of Theorem~\ref{thm:complexity}, while allowing for
+parallelization and requiring less memory.
+It may hence provide an alternative worth investigating to multipoint
+evaluation for precisions in the millions of bits.
+% Also: understand to what extend it applies to the asymptotic series?
+
 \subsection{Binomial coefficients}
 
-The prefactors of both the series expansion at $x = 0$ and the asymptotic series
+The prefactors of both the series expansion at ${x = 0}$ and the asymptotic series
 contain the central binomial coefficient ${2n \choose n}$.
 We need to compute this factor efficiently for any $n$ and precision $p$.
 Since ${2n \choose n} \approx 4^n$, it is best to use
@@ -963,6 +1066,13 @@ lookup table (only a coarse estimate is needed).
 
 \label{sec:selection}
 
+\begin{figure}
+\includegraphics[width=0.9\textwidth]{timeplot}
+\caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
+The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
+\label{fig:timeplot}
+\end{figure}
+
 We first use a set of cutoffs found experimentally to decide whether to use the basecase recurrence or one of the series expansions. The recurrence is mainly faster for some combinations of $p < 1000$, $n < 400$ when computing $(P_n(x), P'_n(x))$ simultaneously and for some combinations of $p < 500$, $n < 100$ when computing $P_n(x)$ alone (in all cases subject to some boundaries $\varepsilon < x < 1 - \varepsilon$); the actual optimal regions are complicated due to differences in overhead between fixed-point integer arithmetic and ball arithmetic for the respective algorithm implementations. For the actual cutoffs used, we refer to the source code.
 
 To select between the series expansion at $x = 0$, the expansion at $x = 1$, and the asymptotic series, the following heuristic is used. For each algorithm $A$, we estimate the evaluation cost as $C_A = K_A (p + p_A)$ where $K_A$ is the number of terms required by algorithm~$A$ ($K_A = \infty$ if $A$ is the asymptotic series and it does not converge to the required accuracy), $p$ is the precision goal, and $p_A$ is the extra precision required by algorithm $A$ due to internal cancellation. For the asymptotic series, we multiply the cost by an extra factor 2 as a penalty for using complex numbers. In the end, we select the algorithm with the lowest $C_A$.
@@ -977,15 +1087,6 @@ for the truncation error via
 \eqref{eq:truncerr2}, \eqref{eq:truncerr2b}, \eqref{eq:binbound}
 using floating-point arithmetic with directed rounding,
 while additional rounding errors are tracked by the ball arithmetic.
-
-\begin{figure}[h!]
-\begin{centering}
-\includegraphics[width=\textwidth]{timeplot}
-\caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
-The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
-\label{fig:timeplot}
-\end{centering}
-\end{figure}
 
 The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$ is not completely realistic, but this cost estimate nonetheless captures the correct asymptotics when
 $$x \to 0, \quad x \to 1, \quad n \to \infty, \quad p \to \infty$$
@@ -1011,17 +1112,6 @@ Except where otherwise noted, the timings were obtained on a
 
 \subsection{Polynomial evaluation}
 
-\begin{figure}[h!]
-\begin{centering}
-\includegraphics[width=0.9 \textwidth]{benchplot}
-\caption{Performance comparison of various methods to evaluate $(P_n(x), P'_n(x))$ to $p$-bit precision for a
-set of $n / 2$ points $0 < x < 1$ distributed like the roots of $P_n$.
-The $y$ axis (relative time) shows the time divided by the time
-using the three-term recurrence in fixed-point arithmetic.}
-\label{fig:benchplot}
-\end{centering}
-\end{figure}
-
 Figure~\ref{fig:benchplot} compares the performance of different methods
 for evaluating $(P_n(x), P'_n(x))$ on a set of $n/2$ points
 distributed like the positive roots of $P_n(x)$
@@ -1037,7 +1127,7 @@ recurrence and different
 series expansions.
 \item The main algorithm without
 the three-term recurrence as the basecase, i.e.\ using series expansions
-even for very small $n$.
+even for very small~$n$.
 \item Fast multipoint
 evaluation of the expanded polynomials $P_n(x)$ and $P'_n(x)$.
 Technically, we expand
@@ -1053,6 +1143,17 @@ The fast multipoint evaluation is done with $2.9n$ guard bits,
 which was found experimentally to be sufficient for full accuracy.
 \end{itemize}
 
+\begin{figure}
+\begin{centering}
+\includegraphics[width=0.9\textwidth]{benchplot}
+\caption{Performance comparison of various methods to evaluate $(P_n(x), P'_n(x))$ to $p$-bit precision for a
+set of $n / 2$ points $0 < x < 1$ distributed like the roots of $P_n$.
+The $y$ axis (relative time) shows the time divided by the time
+using the three-term recurrence in fixed-point arithmetic.}
+\label{fig:benchplot}
+\end{centering}
+\end{figure}
+
 The crossover point between the
 three-term recurrence and series expansions usually occurs
 around $n \approx 10^2 - 10^3$ (it can be as low as $n \approx 10$
@@ -1061,7 +1162,7 @@ For modest $n$,
 the three-term recurrence is much faster
 than the hypergeometric series (typically by a factor 3-4)
 due to working with negligible extra precision
-and due to the low-overhead fixed-point arithmetic.
+and thanks to the low overhead of fixed-point arithmetic.
 This low overhead is very useful for typical evaluation of
 Legendre polynomials and generation of quadrature nodes
 for one or a few machine words of precision.
@@ -1080,7 +1181,7 @@ times faster for $n = 10^3$ and 30 times faster for $n = 10^4$.
 Conversely, fast multipoint evaluation
 with constant $p$ is a factor $\OO(n)$ slower due to the $\OO(n)$ extra precision.
 
-When $p \sim n$ (the three remaining plots in Figure~\ref{fig:benchplot}), the main algorithm
+When $p \propto n$ (the three remaining plots in Figure~\ref{fig:benchplot}), the main algorithm
 appears to show the same $\OO(n)$ speedup
 over the three-term recurrence after the crossover point, at least initially.
 This speedup should level off asymptotically, but
@@ -1117,10 +1218,14 @@ followed by refinements with the interval Newton method
 at doubling precision steps for very high precision.
 
 \begin{table}[h!]
-\begin{centering}
-\begin{tabular}{ c | c c c c c }
-$n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
-20  & 0.000149  &  0.000300  &  0.000660  &  0.00149  &  0.0217  \\ 
+\caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision.
+(For large $n$ and $p$, the time was estimated by computing a subset of the nodes and weights.)}
+\label{tab:timings}
+\begin{center}
+\begin{tabular}{ r | c c c c c }
+$n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\
+\hline\rule{0pt}{3ex}
+20  & 0.000149  &  0.000300  &  0.000660  &  0.00149  &  0.0217 \\ 
 50  & 0.000540  &  0.00119  &  0.00267  &  0.00590  &  0.0760  \\ 
 100  & 0.00181  &  0.00380  &  0.00900  &  0.0188  &  0.205  \\ 
 200  & 0.00660  &  0.0141  &  0.0310  &  0.0640  &  0.624  \\ 
@@ -1132,10 +1237,7 @@ $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 100000  & 4.90  &  16.1  &  49.6  &  221  &  13755  \\ 
 1000000  & 73.0  &  195  &  512  &  2016  &  105705
 \end{tabular}
-\caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision.
-(For large $n$ and $p$, the time was estimated by computing a subset of the nodes and weights.)}
-\label{tab:timings}
-\end{centering}
+\end{center}
 \end{table}
 
 % Pari-time
@@ -1148,7 +1250,9 @@ $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 %  496.0       478.0       474.0        532.0       1880.0
 
 \begin{table}[h!]
-\begin{centering}
+\caption{Speedup of our code compared to Pari/GP for generating degree-$n$ Gauss-Legendre quadrature rules with $p$-bit precision.}
+\label{tab:parispeedup}
+\begin{center}
 \begin{tabular}{ c | c c c c c }
 $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 20  & 3.9  &  2.3  &  2.3  &  2.3  &  3.6  \\ 
@@ -1159,9 +1263,7 @@ $n\, \backslash \; p$ & 64 & 256 & 1024 & 3333 & 33333 \\ \hline
 1000  & 383  &  150 &  46  &  29  &  31  \\ 
 2000  &  4680 & 1320  &  395  &  118  &  55  \\ 
 \end{tabular}
-\caption{Speedup of our code compared to Pari/GP for generating degree-$n$ Gauss-Legendre quadrature rules with $p$-bit precision.}
-\label{tab:parispeedup}
-\end{centering}
+\end{center}
 \end{table}
 
 Table~\ref{tab:timings} shows absolute timings for computing
@@ -1213,12 +1315,18 @@ A breakdown for each degree level
 is shown in Table~\ref{tab:arprectimings}.
 
 \begin{table}[h!]
-\begin{centering}
-\begin{tabular}{ c | c c | c c| c c | c c }
+\caption{Left columns: time in seconds to generate 1000-digit
+quadrature rules for the degrees~$n$ used by ARPREC.
+Right columns: for three different integrals, the
+error $|\int_{-1}^1 f(x) \dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
+quadrature rule, and the time to evaluate this degree-$n$ approximation
+of the integral at 1000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
+\begin{center}
+\begin{tabular}{ r | c c | c c| c c | c c }
 $n$ & ARPREC & Our code &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
-    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) \dx$} &
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) \dx$} &
+    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) \dx$} \\
    &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
 \rule{0pt}{3ex}12 & 0.00520 & 0.000735 & $10^{-14}$ &       &   $10^{-1}$ &  &  $10^{-8}$ & \\
 24 & 0.0189 & 0.00197 & $10^{-28}$  &       &  $10^{-9}$  & &  $10^{-17}$ & \\
@@ -1231,34 +1339,28 @@ $n$ & ARPREC & Our code &
 3072 & 241 & 9.75 &  &  &  &  &  &  \\
 6144 & 1013 & 18.4 &  &  &  &  &  &  \\
 \end{tabular}
-\caption{Left columns: time in seconds to generate 1000-digit
-quadrature rules for the degrees~$n$ used by ARPREC.
-Right columns: for three different integrals, the
-error $|\int_{-1}^1 f(x) dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
-quadrature rule, and the time to evaluate this degree-$n$ approximation
-of the integral at 1000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
 \label{tab:arprectimings}
-\end{centering}
+\end{center}
 \end{table}
 
 \begin{table}[h!]
-\begin{centering}
+\caption{Left columns: step sizes $h$, number of evaluation
+points, and time to compute nodes for double exponential quadrature with Arb
+at 1000-digit precision. Right columns: error and evaluation
+time given precomputed nodes.}
+\begin{center}
 \begin{tabular}{ c c c | c c | c c | c c }
 $h$ & $2n+1$ & Time &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) dx$} &
-    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) dx$} &
-    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) dx$} \\ 
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) \dx$} &
+    \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) \dx$} &
+    \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) \dx$} \\
    &         &          & Error   & Time      &  Error & Time  &  Error & Time \\ \hline
 \rule{0pt}{3ex}$2^{-7}$ & 1989 & $0.07$ & $10^{-407}$ & 0.12 & $10^{-423}$ & 0.93 & $10^{-314}$ & 6.3 \\
 $2^{-8}$ & 3977 & $0.14$ & $10^{-814}$ & 0.25 & $10^{-909}$ & 1.75 & $10^{-630}$ & 13.0 \\
 $2^{-9}$ & 7955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\varepsilon$ & 25.1
 \end{tabular}
-\caption{Left columns: step sizes $h$, number of evaluation
-points, and time to compute nodes for double exponential quadrature with Arb
-at 1000-digit precision. Right columns: error and evaluation
-time given precomputed nodes.}
 \label{tab:dequad}
-\end{centering}
+\end{center}
 \end{table}
 
 Table~\ref{tab:arprectimings} also
@@ -1421,7 +1523,7 @@ and satisfy three-term recurrence relations.
 The main obstacle might be
 to obtain large-$n$ asymptotic expansions with suitable error bounds.
 
-\paragraph*{Acknowledgements}
+\section*{Acknowledgements}
 
 We thank Bruno Salvy for pointing out Petras' paper~\cite{petras1999computation}.
 
