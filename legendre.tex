@@ -476,7 +476,8 @@ Additionally, the static error bound allows us to implement the
 recurrence in fixed-point arithmetic, avoiding the overhead of
 floating-point and interval operations.
 
-Suppose $x = \hat x \, 2^{-t}$ with $\hat x \in \mathbb Z$.
+Suppose $x = \hat x \, 2^{-t}$ with $\hat x \in \mathbb Z$
+is a given fixed-point number.
 Let $\lceil u \rfloor$ denote the integer truncation of a real
 number~$u$ (any other rounding function would do).
 The integer sequence $(\hat p_n)$ defined by
@@ -771,7 +772,10 @@ and the error term satisfies
 |\xi_{n,K}(\theta)| < 2 \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2} \frac{C_{n,K}}{\sin^K(\theta)}.
 \end{equation}
 The coefficients $C_{n,k}$ are a hypergeometric sequence with
-$$\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.$$
+\begin{equation}
+\label{eq:asymprec}
+\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.
+\end{equation}
 To evaluate the error bound, we can use the following inequality for $n, k \ge 1$:
 \begin{equation}
 \label{eq:truncerr0b}
@@ -808,29 +812,68 @@ guard bits to the working precision.
 
 \label{sec:series-zero}
 
-If $n = 2d$ is even, the expansion of $P_n(x)$ on the monomial basis
+If $n = 2d$ is even, the expansion of $P_n(x)$ in the monomial basis
 reads
-$$P_{2d}(x) = (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} = \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k,$$
+\begin{align}
+\label{eq:pzeroseries0}
+\begin{split}
+P_{2d}(x) &= (-1)^d \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k \choose n} x^{2k} \\
+&= \frac{(-1)^d}{2^{2d}} {2d \choose d} \sum_{k=0}^d A_{-1}(d,k) (-x^2)^k,
+\end{split}
+\end{align}
 and if $n = 2d+1$ is odd, we have
-\begin{align*}
+\begin{align}
+\label{eq:pzeroseries1}
+\begin{split}
 P_{2d+1}(x) &= (-1)^d x \sum_{k=0}^d \frac{(-1)^k}{2^n} {n \choose d-k} {n+2k+1 \choose n} x^{2k} \\
 &= \frac{(-1)^d (d+1)}{2^{2d+1}} {2d+2 \choose d+1} \,x\, \sum_{k=0}^d A_{+1}(d,k) (-x^2)^k
-\end{align*}
-where $A_{\pm 1}(d,0) = 1$ and
-$$\frac{A_{\sigma}(d,k)}{A_{\sigma}(d,k-1)} = \frac{(d-k+1) (2d+2k+\sigma)}{k (2k+\sigma)}.$$
-
-If the series are truncated after the $k = K - 1$ term
-(for any $K < d + 1$), comparison with a geometric series
-shows that the error is bounded by the first
-omitted term times $(1-\alpha)^{-1}$
-where
+\end{split}
+\end{align}
+where the hypergeometric sequences $A_{\pm1}$ can be defined by
+$A_{\pm 1}(d,0) = 1$ and
 \begin{equation}
-\label{eq:truncerr1}
-\alpha = |x|^2 \frac{(d-K+1)(2d+2K+\sigma)}{K (2K+\sigma)}.
+\label{eq:pzerorec}
+\frac{A_{\sigma}(d,k)}{A_{\sigma}(d,k-1)} = \frac{(d-k+1) (2d+2k+\sigma)}{k (2k+\sigma)}, \quad \sigma \in \{-1,+1\}.
 \end{equation}
 
-The expansion at zero involves no cancellation
-when applied to an imaginary argument.
+At very high precision, we evaluate the full polynomials,
+where \eqref{eq:pzeroseries0} and \eqref{eq:pzeroseries1}
+have the advantage compared to other expansions
+of requiring only $n/2$ terms due to the odd-even form.
+At lower precision $p$, the high order terms will be smaller than
+$2^{-p}$ when $|x|$ is small, and we can truncate the series
+accordingly and add a bound for the omitted terms
+to the radius of the computed ball.
+When the series are truncated after the $k = K - 1$ term
+(for any $K < d + 1$), comparison with a geometric series
+shows that the error is bounded by the first
+omitted term times a simple factor.
+
+\begin{proposition}
+For $\sigma \in \{-1,+1\}$, the error when truncating
+the bottom sum in
+\eqref{eq:pzeroseries0} or \eqref{eq:pzeroseries1} (with prefactors removed)
+after the $k = K - 1$ term satisfies
+\begin{equation}
+\label{eq:truncerr1}
+\left| \sum_{k=K}^d A_{\sigma}(d,k) (-x^2)^k \right| \le \frac{A_{\sigma}(d,K) |x|^{2K}}{1-\alpha},
+\quad\!\! \alpha = |x|^2 \frac{(d-K+1)(2d+2K+\sigma)}{K (2K+\sigma)}
+\end{equation}
+provided that $\alpha < 1$.
+\end{proposition}
+
+For bounding $A_{\sigma}(d,K)$ in this expression,
+and for selecting the appropriate truncation point $K$,
+we use
+the binomial closed forms together with the remarks
+in Section~\ref{sec:binomial}.
+
+The alternating series \eqref{eq:pzeroseries0} and \eqref{eq:pzeroseries1}
+may suffer from significant cancellation, which requires use of
+increased precision.
+We can estimate the magnitude by
+noting that no cancellation occurs
+if $x$ is an imaginary number.
 Solving the majorizing recurrence $f_n = 2 |z| f_{n-1} + f_{n-2}$ with
 $f_0 = 1$, $f_1 = |z|$ shows that
 \[ |P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n. \]
@@ -848,19 +891,32 @@ for the series evaluation gives $p$-bit accuracy.
 \label{sec:series-one}
 
 Expanding at $x = 1$ yields
-$$P_n(x) = \sum_{k=0}^n c_{n,k} u^k, \quad c_{n,k} = {n \choose k} {n+k \choose k}$$
+\begin{equation}
+\label{eq:poneseries}
+P_n(x) = \sum_{k=0}^n c_{n,k} u^k, \quad c_{n,k} = {n \choose k} {n+k \choose k}
+\end{equation}
 where $u = (x-1)/2$.
-The coefficients $c_{n,k}$ are hypergeometric with
-ratio $c_{n,k}/c_{n,k-1} = (n-k+1)(n+k)/k^2$
-and initial value $c_{n,0} = 1$.
-If the series is truncated after the $k = K - 1$ term,
-the error is bounded by
+The coefficients $c_{n,k}$ are hypergeometric with initial value $c_{n,0} = 1$
+and term ratio
+\begin{equation}
+\label{eq:poneprec}
+\frac{c_{n,k}}{c_{n,k-1}} = \frac{(n-k+1)(n+k)}{k^2}.
+\end{equation}
+As in the previous section, we can truncate \eqref{eq:poneseries} and
+bound the error by comparison with a geometric series.
+
+\begin{proposition}
+\label{prop:poneseries}
+The error when truncating \eqref{eq:poneseries} after the $k = K - 1$ term satisfies
 \begin{equation}
 \label{eq:truncerr2}
-{n \choose K}{n+K \choose K} |u|^K \frac{1}{1-\alpha}, \quad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}.
+\left| \sum_{k=K}^n c_{n,k} u^k \right| \le \frac{c_{n,K} |u|^K}{1-\alpha},
+\quad\!\! \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}
 \end{equation}
+provided that $\alpha < 1$.
+\end{proposition}
 
-For $u \ge 0$, the series does not suffer from cancellation.
+For $u \ge 0$, \eqref{eq:poneseries} does not suffer from cancellation.
 For $u < 0$, we can estimate the amount of
 cancellation from the magnitude of $P_n(x')$ where $|u| = (x'-1)/2$.
 For not too large $x' \ge 1$, a very good approximation is
@@ -868,7 +924,7 @@ For not too large $x' \ge 1$, a very good approximation is
            = 2\,I_0(2n\sqrt{|u|})
            \leq 2\,e^{2n\sqrt{|u|}}. \]
 We therefore need about $2n\sqrt{\max(0,-u)} / \ln(2)$ bits
-of increased precision when evaluating the series.
+of increased precision.
 
 We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
 involves a division by $1-x^2$, it is useful to
@@ -876,16 +932,17 @@ evaluate $P'_n$ directly when $x$ is close to 1.
 We have
 $P'_n(x) = \sum_{k=0}^{n-1} c'_{n,k} u^k$
 where $c'_{n,k} = (k+1) c_{n,k+1} / 2$ satisfies
-\[
+\begin{equation}
+\label{eq:ponerecprime}
   c'_{n,0} = \frac{n(n+1)}{2}, \qquad
   \frac{c'_{n,k}}{c'_{n,k-1}} = \frac{(n-k)(n+k+1)}{k(k+1)}.
-\]
-Since $c'_{n,k} \le n c_{n,k+1}$, the truncation error is bounded by
+\end{equation}
+Since $c'_{n,k} \le n c_{n,k+1}$, the analog
 \begin{equation}
 \label{eq:truncerr2b}
-n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}
+\left| \sum_{k=K}^n c'_{n,k} u^k \right| \le n {n \choose K+1}{n+K+1 \choose K+1} |u|^K \frac{1}{1-\alpha}
 \end{equation}
-with $u$ and $\alpha$ as above.
+of Proposition~\ref{prop:poneseries} holds with $u$ and $\alpha$ as above.
 
 \subsection{Hypergeometric series evaluation}
 
@@ -936,6 +993,11 @@ recurrence requires $\OO(K)$ expensive operations.
 
 Algorithm \ref{alg:hyprs} presents our version of rectangular splitting
 for the present application.
+We implement the various series expansions by defining
+the polynomial evaluation functions $p(k), q(k)$ according to formulas
+\eqref{eq:asymprec}, \eqref{eq:pzerorec},
+\eqref{eq:poneprec}, \eqref{eq:ponerecprime}.
+
 This algorithm is a generalization of the
 method for evaluating Taylor series of elementary
 functions given in~\cite{Johansson2015elementary},
@@ -1040,6 +1102,8 @@ evaluation for precisions in the millions of bits.
 % Also: understand to what extend it applies to the asymptotic series?
 
 \subsection{Binomial coefficients}
+
+\label{sec:binomial}
 
 The prefactors of both the series expansion at ${x = 0}$ and the asymptotic series
 contain the central binomial coefficient ${2n \choose n}$.
