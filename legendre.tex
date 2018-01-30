@@ -1052,6 +1052,13 @@ lookup table (only a coarse estimate is needed).
 
 \label{sec:selection}
 
+\begin{figure}
+\includegraphics[width=\textwidth]{timeplot}
+\caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
+The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
+\label{fig:timeplot}
+\end{figure}
+
 We first use a set of cutoffs found experimentally to decide whether to use the basecase recurrence or one of the series expansions. The recurrence is mainly faster for some combinations of $p < 1000$, $n < 400$ when computing $(P_n(x), P'_n(x))$ simultaneously and for some combinations of $p < 500$, $n < 100$ when computing $P_n(x)$ alone (in all cases subject to some boundaries $\varepsilon < x < 1 - \varepsilon$); the actual optimal regions are complicated due to differences in overhead between fixed-point integer arithmetic and ball arithmetic for the respective algorithm implementations. For the actual cutoffs used, we refer to the source code.
 
 To select between the series expansion at $x = 0$, the expansion at $x = 1$, and the asymptotic series, the following heuristic is used. For each algorithm $A$, we estimate the evaluation cost as $C_A = K_A (p + p_A)$ where $K_A$ is the number of terms required by algorithm~$A$ ($K_A = \infty$ if $A$ is the asymptotic series and it does not converge to the required accuracy), $p$ is the precision goal, and $p_A$ is the extra precision required by algorithm $A$ due to internal cancellation. For the asymptotic series, we multiply the cost by an extra factor 2 as a penalty for using complex numbers. In the end, we select the algorithm with the lowest $C_A$.
@@ -1066,13 +1073,6 @@ for the truncation error via
 \eqref{eq:truncerr2}, \eqref{eq:truncerr2b}, \eqref{eq:binbound}
 using floating-point arithmetic with directed rounding,
 while additional rounding errors are tracked by the ball arithmetic.
-
-\begin{figure}[h!]
-\includegraphics[width=\textwidth]{timeplot}
-\caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
-The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
-\label{fig:timeplot}
-\end{figure}
 
 The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$ is not completely realistic, but this cost estimate nonetheless captures the correct asymptotics when
 $$x \to 0, \quad x \to 1, \quad n \to \infty, \quad p \to \infty$$
@@ -1090,17 +1090,6 @@ For large $n$ and $p \ll n$, a sharp peak appears at the transition between the 
 \label{sec:bench}
 
 \subsection{Polynomial evaluation}
-
-\begin{figure}[h!]
-\begin{centering}
-\includegraphics[width=\textwidth]{benchplot}
-\caption{Performance comparison of various methods to evaluate $(P_n(x), P'_n(x))$ to $p$-bit precision for a
-set of $n / 2$ points $0 < x < 1$ distributed like the roots of $P_n$.
-The $y$ axis (relative time) shows the time divided by the time
-using the three-term recurrence in fixed-point arithmetic.}
-\label{fig:benchplot}
-\end{centering}
-\end{figure}
 
 Figure~\ref{fig:benchplot} compares the performance of different methods
 for evaluating $(P_n(x), P'_n(x))$ on a set of $n/2$ points
@@ -1133,6 +1122,17 @@ the same product tree is used for both $P_n$~and~$P'_n$).
 The fast multipoint evaluation is done with $2.9n$ guard bits,
 which was found experimentally to be sufficient for full accuracy.
 \end{itemize}
+
+\begin{figure}
+\begin{centering}
+\includegraphics[width=\textwidth]{benchplot}
+\caption{Performance comparison of various methods to evaluate $(P_n(x), P'_n(x))$ to $p$-bit precision for a
+set of $n / 2$ points $0 < x < 1$ distributed like the roots of $P_n$.
+The $y$ axis (relative time) shows the time divided by the time
+using the three-term recurrence in fixed-point arithmetic.}
+\label{fig:benchplot}
+\end{centering}
+\end{figure}
 
 The crossover point between the
 three-term recurrence and series expansions usually occurs
