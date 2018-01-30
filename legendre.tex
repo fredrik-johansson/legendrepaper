@@ -1124,7 +1124,9 @@ and the equivalent form
 {n \choose k} \le \left(\frac{n}{n-k}\right)^{n-k} \left(\frac{n}{k}\right)^k = \frac{n^n}{k^k (n-k)^{n-k}}.
 \end{equation}
 The function $G(x)$ can be evaluated cheaply with a precomputed
-lookup table (only a coarse estimate is needed).
+lookup table. A coarse estimate is sufficient, since overestimating
+$\log_2 {n \choose k}$ by a few percent only adds a few
+percent to the running time.
 
 \section{Algorithm selection}
 
@@ -1531,7 +1533,7 @@ evaluations or computing an FFT of length~$n$.
 This makes Gauss-Legendre quadrature competitive for computing more than $m$
 integrals (assuming that nodes and weights are cached),
 for a single integral requiring splitting into $m$ subintervals,
-or for a single integral when the integrand costs more $m$ elementary
+or for a single integral when the integrand costs more than $m$ elementary
 function evaluations, where $m \approx 10^1$.
 
 The picture becomes more complicated when accounting for the method
