@@ -1137,13 +1137,6 @@ percent to the running time.
 
 \label{sec:selection}
 
-\begin{figure}
-\includegraphics[width=0.9\textwidth]{timeplot}
-\caption{Time to evaluate $(P_n(x), P'_n(x))$ near the location of the positive root with index $k$ for $0 \le k < n/2$, at varying levels of precision $p$.
-The separate timing curves in each plot are for $p = 64, 256, 1024, 4096, 16384$, and each curve has been normalized by setting its median height to 1. The $y$ axis for the $n = 10^5$ timings has been cut off; the highest peak is $y \approx 24$ times the median which occurs at $k = 6$ when $n = 10^5$ and $p = 64$.}
-\label{fig:timeplot}
-\end{figure}
-
 We first use a set of cutoffs found experimentally to decide whether to use the basecase recurrence or one of the series expansions. The recurrence is mainly faster for some combinations of $p < 1000$, $n < 400$ when computing $(P_n(x), P'_n(x))$ simultaneously and for some combinations of $p < 500$, $n < 100$ when computing $P_n(x)$ alone (in all cases subject to some boundaries $\varepsilon < x < 1 - \varepsilon$); the actual optimal regions are complicated due to differences in overhead between fixed-point integer arithmetic and ball arithmetic for the respective algorithm implementations. For the actual cutoffs used, we refer to the source code.
 
 To select between the series expansion at $x = 0$, the expansion at $x = 1$, and the asymptotic series, the following heuristic is used. For each algorithm $A$, we estimate the evaluation cost as $C_A = K_A (p + p_A)$ where $K_A$ is the number of terms required by algorithm~$A$ ($K_A = \infty$ if $A$ is the asymptotic series and it does not converge to the required accuracy), $p$ is the precision goal, and $p_A$ is the extra precision required by algorithm $A$ due to internal cancellation. For the asymptotic series, we multiply the cost by an extra factor 2 as a penalty for using complex numbers. In the end, we select the algorithm with the lowest $C_A$.
@@ -1159,20 +1152,37 @@ for the truncation error via
 using floating-point arithmetic with directed rounding,
 while additional rounding errors are tracked by the ball arithmetic.
 
-The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$ is not completely realistic, but this cost estimate nonetheless captures the correct asymptotics when
-$$x \to 0, \quad x \to 1, \quad n \to \infty, \quad p \to \infty$$
-separately, and hopefully will not be too inaccurate in the transition regions. This is verified empirically. The plots in Figure~\ref{fig:timeplot} show the measured
-timings to evaluate $(P_n(x), P'_n(x))$ using the automatic algorithm selection.
-The evaluation points are $\cos(\pi (4k+3)/(4n+2))$ for $0 \le k < n/2$, matching
-the distribution of the roots $x_k$ of $P_n(x)$ on $(0,1]$ (where $k/n = 0$ is closest to $x = 1$ and $k/n = 1/2$ is closest to $x = 0$).
-The individual curves show the time at respective precisions $p = 64, 256, 1024, 4096, 16384$.
-Each curve has been normalized by its median height, i.e.\ the median time to compute any root with a fixed $(n,p)$ is set to 1.
+\begin{figure}
+\begin{centering}
+\includegraphics[width=0.8\textwidth]{timeplot}
+\caption{Time to evaluate $(P_n(x), P'_n(x))$ as the argument $x = \cos(\theta)$ varies ($x = 1$ at $\theta = 0$ and $x = 0$ at $\theta = \pi/2$), here with $n = 10000$, for
+precision $p$ somewhat smaller than $n$ (top plot) and somewhat larger (bottom plot). The variable $\theta$ is used for the horizontal scale in this picture
+to follow the distribution of the roots (which are clustered near $x = 1$) linearly.}
+\label{fig:timeplot}
+\end{centering}
+\end{figure}
 
-For large $n$ and $p \ll n$, a sharp peak appears at the transition between the series
-expansion at $x = 1$ and the asymptotic expansion. This peak could presumably be
-removed by use of an asymptotic method for large $n$ valid when $x \approx 1$. However, 
-the extra area under the peak compared to the area under the median baseline is so small
-that generating the full set of Gauss quadrature nodes would not be sped up much.
+The assumption that the running time is a bilinear function of $K_A$ and $p + p_A$
+is not completely realistic, but this cost estimate nonetheless captures the
+correct asymptotics when
+$$x \to 0, \quad x \to 1, \quad n \to \infty, \quad p \to \infty$$
+separately, and hopefully will not be too inaccurate in the transition regions.
+This is verified empirically.
+
+Figure~\ref{fig:timeplot} illustrates how the time to evaluate
+$(P_n(x), P'_n(x))$ varies with $x$ when the automatic algorithm selection is used.
+Here, we have timed the case $n = 10000$ for two different $p$.
+For large $n$ and $p \ll n$ (top plot), a sharp peak appears at the transition between the series
+expansion at $x = 1$ and the asymptotic expansion which is used for most $x$.
+This peak tends to become taller
+but narrower for larger $n$.
+We could presumably get rid of the peak by using a different algorithm
+in the transition region, but the area under the peak is so small
+compared to the median baseline that computing all the roots
+would not be sped up much.
+For $p$ somewhat larger than $n$ (bottom plot), we observe a smooth transition between the
+series at $x = 1$ near the left of the picture and the series at $x = 0$
+used over the most of the range.
 
 \section{Benchmarks}
 
@@ -1250,7 +1260,8 @@ With the constant precision $p = 64$,
 the main algorithm is 3.0
 times faster for $n = 10^3$ and 30 times faster for $n = 10^4$.
 Conversely, fast multipoint evaluation
-with constant $p$ is a factor $\OO(n)$ slower due to the $\OO(n)$ extra precision.
+with constant $p$ is a factor $\OO(n)$ slower than our
+algorithm due to the higher internal precision.
 
 When $p \propto n$ (the three remaining plots in Figure~\ref{fig:benchplot}), the main algorithm
 appears to show the same $\OO(n)$ speedup
