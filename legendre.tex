@@ -508,7 +508,7 @@ using GMP~\cite{granlund2017}.
 As a small optimization, we delay the division by~$n+1$ until we have
 accumulated a denominator of the size of a machine word.
 
-\begin{algorithm}[h!]
+\begin{algorithm}[h]
   %\algsetup{linenosize=\tiny}
   \caption{Evaluation of Legendre polynomials in GMP fixed-point arithmetic}
   \small
@@ -536,7 +536,8 @@ void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {
             den = k+1;
         } else den = denlo;
     }
-    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);
+    mpz_tdiv_q_ui(p, p, den/n);
+    mpz_tdiv_q_ui(q, q, den);
     mpz_clear(tmp);
 }
 \end{verbatim}
@@ -1414,7 +1415,7 @@ quadrature rule, and the time to evaluate this degree-$n$ approximation
 of the integral at 1\,000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
 \begin{center}
 \begin{tabular}{ r | c c | c c| c c | c c }
-$n$ & ARPREC & Our code &
+$n$ & ARPREC\! & Our code &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\log(2\!+\!x) \dx$} &
     \multicolumn{2}{|c|}{$\int_{-1}^{1}\!\operatorname{Ai}(10 x) \dx$} &
     \multicolumn{2}{|c}{$\int_{-1}^{1}\!\Gamma(1\!+\!ix) \dx$} \\
