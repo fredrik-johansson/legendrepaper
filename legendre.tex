@@ -351,20 +351,16 @@ The following bounds hold for $-1 \leq x \leq 1$:
 \end{proposition}
 
 \begin{proof}
-We make use of the well-known generating series for Legendre polynomials
+It is classical that Legendre polynomials are given by the generating series
 \begin{equation} \label{eq:generating-series}
   F(x, z)
   = \sum_{n=0}^{\infty} P_n(x) z^n
   = \frac{1}{\sqrt{1 - 2 x z + z^2}}.
 \end{equation}
-It is often convenient to introduce auxiliary
-variables~$\theta \in [0, \pi]$ and $y \in [0, 1]$ defined by
-$x = \cos \theta$ and $y = \sin \theta = \sqrt{1 - x^2}$.
-
-Let $F(x, z)$ be the generating series~\cref{eq:generating-series}, and write
+Differentiation with respect to~$x$ yields
 \[
   \sum_{n=0}^{\infty} P'_n(x) z^n
-  = \frac{\mathrm d F(x, z)}{\mathrm d x}
+  % = \frac{\mathrm d F(x, z)}{\mathrm d x}
   = \frac{z F(x, z)}{1 - 2 x z + z^2},
   \qquad
   \sum_{n=0}^{\infty} P''_n(x) z^n
@@ -684,7 +680,7 @@ have one of the systems of equations
   \vp_k &= \vq_{k-1}, &
   \vq_k &= (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor
           - k^2 \vp_{k-1}, &
-  \vd_k &= (k+1) \vd_{k-1} \\
+  \vd_k &= (k+1) \, \vd_{k-1} \\
   \vp_k &= \left\lceil \frac{\vq_{k-1}}{\vd_{k-1}} \right\rfloor, &
   \vq_k &= \left\lceil \frac{
           (2k+1) \lceil \hat x \vq_{k-1} 2^{-t} \rfloor - k^2 \vp_{k-1}}
@@ -707,8 +703,7 @@ have one of the systems of equations
 In both cases, we can write
 \begin{align*}
   \frac{\vp_k}{\vd_k}
-  &= \frac{\vq_{k-1}}{(k+1) \vd_{k-1}} + \frac{\alpha_k}{k+1}
-   % = \tilde p_k + \alpha_k, &
+  &= \frac{\vq_{k-1}}{(k+1) \vd_{k-1}} + \frac{\alpha_k}{k+1},
    &
   \frac{\vq_k}{\vd_k}
   &= \frac{ (2k+1) (x \vq_{k-1} + \beta_k) - k^2 \vp_{k-1} }
@@ -927,7 +922,7 @@ The error when truncating \cref{eq:poneseries} after the $k = K - 1$ term satisf
 \begin{equation}
 \label{eq:truncerr2}
 \left| \sum_{k=K}^n c_{n,k} u^k \right| \le \frac{c_{n,K} |u|^K}{1-\alpha},
-\quad\!\! \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}
+\qquad \alpha = |u| \frac{(n-K)(n+K+1)}{(K+1)^2}
 \end{equation}
 provided that $\alpha < 1$.
 \end{proposition}
@@ -1223,7 +1218,7 @@ the three-term recurrence as the basecase, i.e.\ using series expansions
 even for very small~$n$.
 \item Fast multipoint
 evaluation of the expanded polynomials $P_n(x)$ and $P'_n(x)$.
-Technically, we expand
+As in \cref{sec:series-zero}, we expand
 $P_{n}(\sqrt{x})$ for even $n$ and $P_{n}(\sqrt{x})/\sqrt{x}$ for odd $n$
 and evaluate at $x^2$ since this halves the amount of work.
 The polynomial coefficients are generated using
@@ -1302,7 +1297,7 @@ currently seems to have limited practical value for this application.
 The function
 \texttt{arb\_hypgeom\_legendre\_p\_ui\_root(x, w, n, k, p)}
 sets the output variable
-$x$ to a ball containing the root of $P_n$ with index $k$ (we use the indexing
+$x$ to a ball containing the root of $P_n$ with index~$k$ (we use the indexing
 $0 \le k < n$, with $k = 0$ giving the root closest to 1),
 computed to $p$-bit precision.
 It also sets $w$ to the corresponding quadrature weight.
