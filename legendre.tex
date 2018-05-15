@@ -59,8 +59,8 @@ weights using the interval Newton method.
 We provide rigorous error bounds for all steps of the algorithm.
 The approach is validated by an implementation in the Arb library,
 which achieves order-of-magnitude speedups over
-previous code for computing Gauss-Legendre rules with simultaneous
-high degree and precision.
+previous code for computing Gauss-Legendre rules suitable for precisions
+in the thousands of bits.
 \end{abstract}
 
 \begin{keywords}
@@ -80,6 +80,7 @@ Like other classical orthogonal polynomials, Legendre polynomials
 satisfy a three-term recurrence, in this case the relation
 \begin{equation} \label{eq:recurrence}
   (n + 1) P_{n+1}(x) - (2n + 1) x P_n(x) + n P_{n-1}(x) = 0,
+  \quad n \geq 1,
 \end{equation}
 also known as Bonnet's formula, and a second order differential equation, here
 \begin{equation} \label{eq:diffeq}
@@ -142,9 +143,6 @@ For a review of this progress, see Townsend~\cite{townsend2015race}.
 Of course, the ``$\OO(1)$'' bound assumes that a fixed
 level of precision is used. In the prevailing literature
 this generally means 53-bit IEEE 754 floating-point arithmetic.
-As mentioned earlier, certain applications require
-considering $p \sim n$ where~$p$ is the precision in bits,
-which potentially can be in the thousands.
 In addition, the available $\OO(1)$ implementations rely in part
 on heuristic error estimates without rigorously proved bounds.
 
@@ -172,10 +170,28 @@ in packages such as Pari/GP~\cite{PARI2}
 and ARPREC~\cite{bailey2002arprec}, but without error analysis
 and without special techniques for large $n$.
 
-If we assume that the precision $p$ varies,
-then it is clear that any node and weight
-can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time%
-\footnote{We write $\OOtilde(x)$ for $\OO(x \, \log(x)^{\OO(1)})$.},
+In the present article, we are interested in computing Gauss-Legendre
+nodes and weights to precisions~$p$ significantly larger than machine
+precision---typically in the hundreds to thousands of bits---, with
+rigorous error bounds.
+As mentioned earlier, certain applications require enclosing the values
+of integrals to accuracies of this order%
+\footnote{As a concrete example, Johansson~\cite{Johansson2018a}
+studies the computation of Stieltjes constants~$\gamma_k$ to precisions
+of hundreds of decimal digits using complex integration, building among
+other things on the work presented in the present paper.},
+and it is often reasonable to use quadrature rules of degree~$n$ that
+grows roughly linearly with~$p$ for this purpose.
+
+If we assume that the precision $p$ varies, basic arithmetic operations
+are no longer constant-time.
+It is well-known that addition, multiplication and division of $p$-bit
+numbers (of bounded exponent) can be performed in
+$\OOtilde(p)$ operations~\cite{BrentZimmermann2010},
+where the notation $\OOtilde(\cdot)$ means that we neglect logarithmic
+factors.
+It is then clear that any node and weight
+can be computed to $p$-bit accuracy in $\OOtilde(n p)$ time,
 by performing $\OO(\log p)$ Newton iterations \cref{eq:newton}
 from an appropriate initial value.
 As a consequence, the full set of nodes and weights
@@ -212,29 +228,42 @@ in practice, in large part due to the need to work
 with greatly increased precision.
 Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
-makes parallelization difficult.
-See \cref{sec:serieseval} below for an alternative approach--also
-unlikely to be practical except for extremely large~$p$---that leads to a
-similar complexity bound.
+makes parallelization difficult%
+\footnote{See also \cref{sec:serieseval} for an alternative approach
+that leads to a similar complexity bound and may prove more practical
+for extremely large~$p$.}.
 We can achieve a slightly worse but still subcubic
 complexity of $\OOtilde(n^{5/2})$
 by employing
 fast multipoint evaluation in a completely different way
-to compute $P_n$ values in isolation,
-but unfortunately that algorithm
-also has high overhead~\cite{Johansson2014rectangular}.
+to compute $P_n$ values in isolation~\cite{Johansson2014rectangular},
+but unfortunately that algorithm also has high overhead.
 
-In this work, we study fast and practical computation for variable $n$
-and precision~$p$ with rigorous error bounds.
+In this work, we develop rigorous and more practical alternatives to the
+asymptotically fast algorithm outlined above.
 Our main contribution is to give a complete evaluation strategy
 for Legendre polynomials on $[-1,1]$ in ball arithmetic~\cite{vdH:ball,Johansson2017arb}.
 Computing the Legendre polynomial roots, then,
 is a relatively simple application of the results
 in~\cite{petras1999computation} together with
 the interval Newton method~\cite{moore1979methods}.
+For generating Gauss-Legendre quadrature rules with $n \sim p$,
+our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
+classical methods. However, our algorithm has much lower overhead.
+For parameters $p, n \leq 10^5$ which are most relevant to
+applications, the observed running time is effectively subcubic.
+Our algorithm outperforms that of Theorem~\ref{thm:complexity} for
+practically any combination of $n$~and~$p$ in that range.
+Furthermore, if $p = \OO(1)$, the complexity reduces to $\OOtilde(n)$
+as in the machine-precision implementations by
+Bogaert~\cite{bogaert2014iteration} and others.
 
-Our algorithm for evaluating Legendre polynomials switches between
-different methods.
+The remainder of this paper is organized as follows.
+\Cref{sec:general} gives an overview of our algorithm for evaluating
+Legendre polynomials.
+This is a hybrid algorithm that switches between different methods,
+detailed in the following sections, depending on the values of $n$, $p$,
+and~$x$.
 In \cref{sec:recurrence}, we prove practical error bounds for
 the three-term recurrence~\cref{eq:recurrence}, which can be
 efficiently implemented in fixed-point arithmetic.
@@ -244,24 +273,12 @@ of hypergeometric series.
 \Cref{sec:series} discusses the hypergeometric series
 expansions that are preferable for different inputs and precision
 (including a well-known asymptotic expansion for large $n$),
-and their efficient evaluation.
+and \cref{sec:eval} their efficient evaluation.
 In \cref{sec:selection}, we propose a strategy to select the
 best formula for any combination of~$n, p, x$.
-
-\Cref{sec:bench} presents benchmark results
-that compare the performance
-of our algorithm
-to some previous implementations
-as well as the asymptotically fast algorithm in \cref{thm:complexity}.
-
-For generating Gauss-Legendre quadrature rules with $n \sim p$,
-our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
-classical methods. However, our algorithm has much lower overhead,
-and for parameters $p, n < 10^5$ which are most relevant to applications,
-the observed running time is effectively subcubic.
-Furthermore, if $p = \OO(1)$, the complexity reduces to $\OOtilde(n)$
-as in the machine-precision implementations by Bogaert and others.
-
+\Cref{sec:bench} presents benchmark results that compare the performance
+of our algorithm to some previous implementations as well as the
+asymptotically fast algorithm in \cref{thm:complexity}.
 Finally, \cref{sec:vsothers} reviews the viability of Gauss-Legendre
 quadrature compared to other methods
 for extremely high precision integration.
@@ -286,10 +303,11 @@ which is the most interesting part of the domain for applications.
 Since $P_n(-x) = (-1)^n P_n(x)$, we can further
 restrict to $0 \le x \le 1$.
 Some authors suggest working with $P_n(\cos(\theta))$ instead of $P_n(x)$
-directly to improve numerical stability for $x$ close to 1, but
-this is not necessary in arbitrary-precision arithmetic since
-a slight precision increase (of the order of $\OO(\log n)$ bits)
-works as well.
+directly to improve numerical stability for $x$ close to 1.
+This is not necessary in arbitrary-precision arithmetic since
+a slight precision increase (of the order of $\OO(\log n)$ bits, since
+the distance between two successive roots of~$P_n$ close to~$\pm1$ is
+about $1/n^2$) works as well.
 
 We note that, for rigorous evaluation of $P_n(z)$ with complex $z$
 as well as Legendre functions of non-integer order $n$,
@@ -307,8 +325,11 @@ $P_n(x)$ and $P_{n-1}(x)$ using
 \end{equation}
 When $x$ is close to~$1$, though, this formula involves a
 cancellation of about $\abs{\log_2(1 - x)}$ bits in the subtraction,
-followed by a division by $x^2 - 1$. Therefore, a direct evaluation
-of $P'_n(x)$ may be preferable to reduce the working precision.
+followed by a division by $x^2 - 1$.
+Therefore, a direct evaluation of $P'_n(x)$ may be preferable to reduce
+the working precision.
+We use either of these strategies depending on the values of
+$n$, $p$, and~$x$.
 
 Our evaluation algorithms rely on ball arithmetic internally to
 propagate the error bounds up to the final result.
@@ -415,7 +436,8 @@ By the same reasoning, the inequality
 \[ |P^{(k)}_n(x)| \leq \frac{2^{k+1/2}}{\sqrt{\pi}}
                        \frac{n^{k-1/2}}{(1 - x^2)^{(2n+1)/4}} \]
 actually holds for all~$k$. Unfortunately, it seems to
-overestimate~$|P^{(k)}|$ by a factor about~$2^k$.
+overestimate the envelope of~$|P_n^{(k)}|$ by a factor about~$2^k$
+in the region where it is smaller than~$P_n^{(k)}(1)$.
 \end{remark}
 
 Based on these reductions, we assume from now on that $x$~is a
@@ -752,11 +774,10 @@ respect to either $n$ or $x$ rather than the algorithm from the
 previous section.
 The coefficients of the series are also computed by recurrence,
 but fewer than $n$ terms will typically be required.
-Additionally, the expansions are of a form suitable for fast
-evaluation by rectangular splitting.
-Let us first review the various series expansions that we are using
-(an asymptotic expansion as $n \to \infty$, series expansions at $x=0$
-and $x=1$), and then discuss their efficient evaluation.
+Let us now review the various series expansions that we are using (an
+asymptotic expansion as $n \to \infty$, series expansions at $x=0$
+and $x=1$), before discussing their efficient evaluation in the next
+section.
 
 \subsection{Asymptotic series}
 
@@ -771,8 +792,9 @@ P_n(\cos(\theta)) = \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2}
 \sum_{k=0}^{K-1} C_{n,k} \frac{\cos(\alpha_{n,k}(\theta))}{\sin^k(\theta)}
 + \xi_{n,K}(\theta)
 \end{equation}
-where
+(for arbitrary $K \geq 1$), where
 \begin{equation}
+\label{eq:Cnk-Gamma}
 C_{n,k} = \frac{[\Gamma(k+1/2)]^2 \Gamma(n+1)}{\pi 2^k \Gamma(n+k+3/2) \Gamma(k+1)},
 \end{equation}
 \begin{equation}
@@ -788,10 +810,12 @@ The coefficients $C_{n,k}$ are a hypergeometric sequence with
 \label{eq:asymprec}
 \frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.
 \end{equation}
-To evaluate the error bound, we can use the following inequality for $n, k \ge 1$:
+To evaluate the error bound, we can use the following inequality deduced
+from~\eqref{eq:Cnk-Gamma}:
 \begin{equation}
 \label{eq:truncerr0b}
-C_{n,k} \le \frac{1}{\pi n^{1/2}} \frac{k! n!}{2^k (n+k)!} \le \frac{1}{\pi n^{1/2}} \frac{k!}{(2n)^k}.
+C_{n,k} \le \frac{1}{\pi n^{1/2}} \frac{k! n!}{2^k (n+k)!} \le \frac{1}{\pi n^{1/2}} \frac{k!}{(2n)^k},
+\quad n, k \ge 1.
 \end{equation}
 
 The asymptotic expansion is in fact a convergent series
@@ -807,9 +831,14 @@ We can restate \cref{eq:asymptotic} as a hypergeometric series
 by working with complex numbers.
 Letting $\omega = 1 - (x/y) i$, with $x = \cos(\theta)$ and $y =
 \sin(\theta)$ as usual, we have
+\[ (1-i) (x+iy)^{n+1/2} \omega^k
+= \sqrt2 \, e^{-i \frac{\pi}{4}} \, e^{i (n+1/2)\theta} \,
+  e^{i k (\theta-\pi/2)} \, y^{-k}
+= \sqrt2 \, \frac{\exp(i \, \alpha_{n,k}(\theta))}{\sin^k(\theta)}, \]
+and hence
 \begin{equation}
 \label{eq:asymptoticcomplex}
-P_n(x) = \sqrt{\pi y} \, \operatorname{Re}\left[
+P_n(x) = \frac{1}{\sqrt{\pi y}} \, \operatorname{Re}\left[
 (1-i) (x+y i)^{n+1/2}
 \sum_{k=0}^{K-1} C_{n,k} \omega^k\right] + \xi_{n,K}(\theta).
 \end{equation}
@@ -956,7 +985,17 @@ Since $c'_{n,k} \le n c_{n,k+1}$, the analog
 \end{equation}
 of \cref{prop:poneseries} holds with $u$ and $\alpha$ as above.
 
-\subsection{Hypergeometric series evaluation}
+\section{Fast evaluation of series expansions}
+
+\label{sec:eval}
+
+All these series expansions are amenable to fast evaluation techniques
+specific to multiple-precision arithmetic. Using such fast summation
+algorithms is critical for achieving good performance at high precision.
+We now discuss the algorithm that we use for evaluating the series of
+the previous section.
+
+\subsection{Rectangular splitting}
 
 \label{sec:serieseval}
 
@@ -1069,6 +1108,8 @@ but in practice rectangular splitting
 performs better until both $K$ and~$p$
 exceed $10^6$ (see \cite{Johansson2014rectangular}).
 
+\subsection{A note on the bit-burst method}
+
 Another technique for fast evaluation of hypergeometric series,
 binary splitting, would be useful when $p$ is large and the
 argument $x$ is a rational number with small numerator and denominator,
@@ -1076,13 +1117,20 @@ but this case is not relevant for our application.
 
 Binary splitting also forms the basis of the bit-burst
 method~\cite[Section 4]{ChudnovskyChudnovsky1990}, which permits
-evaluating any fixed hypergeometric series at any fixed point to
-absolute precision~$p$ in only~$\OOtilde(p)$ bit operations.
-Computing~$P_n(x)$ by this method would require $\OO(\log p)$ analytic
-continuation steps, each of which would entail two evaluations of
-general solutions of the Legendre differential equation~\cref{eq:diffeq}, given by
-power series of radius of convergence $1 - |x|$ whose coefficients
-obey recurrences of order two.
+evaluating any fixed hypergeometric series at any fixed point---without
+the restriction to simple rational numbers of plain binary
+splitting---to absolute precision~$p$ in only~$\OOtilde(p)$ bit
+operations.
+Yet, we do not use this method either in our implementation, due to its
+large overhead.
+
+Indeed, computing~$P_n(x)$ by the bit-burst method method requires
+$\OO(\log p)$ analytic continuation steps, each of which entails
+two evaluations of general solutions of the Legendre differential
+equation~\cref{eq:diffeq}.
+These solutions are defined by unit initial values at some intermediate
+point~$x_0$, and can be represented as a power series of radius of
+convergence $1 - |x|$ whose coefficients obey recurrences of order two.
 This is to be compared with a single series, given by a first-order
 recurrence and typically converging faster, for the expansions
 considered in \cref{sec:series-asy}~to~\cref{sec:series-one}.
@@ -1091,8 +1139,8 @@ of precision we are interested in, especially when the asymptotic
 series can be used.
 
 Nevertheless, it can be shown that the solutions with unit initial
-values at~$x_0$ of~\cref{eq:diffeq} have Taylor
-coefficients~$c_k$ at~$x_0$ bounded by
+values at~$x_0$ of~\cref{eq:diffeq} occuring at intermediate analytic
+continuation steps have Taylor coefficients~$c_k$ at~$x_0$ bounded by
 $(n^2/(1-|x_0|))^{\OO(k)}$
 uniformly in $n$~and~$x_0$.
 % Proof sketch: The Legendre equation (in matrix form, say) is
@@ -1100,8 +1148,8 @@ uniformly in $n$~and~$x_0$.
 %     g'(t) = O(n²)/(1-|x₀|-t) g(t)
 % whose solution has coefficients that grow like
 %     (n²/(1-|x₀|))^O(k).
-As a consequence, the cost of computing any individual root of
-$P_n(x)$ by the bit-burst method and Newton iteration is
+As a consequence, the asymptotic cost of computing any individual root
+of $P_n(x)$ by the bit-burst method and Newton iteration is
 $\OOtilde(p) \, \log(n)^{\OO(1)}$.
 % Because we can get within O((1-|x|)/n²) of any root x_k by a single
 % evaluation of the series at 0 or 1 at a point of bit size
@@ -1152,6 +1200,9 @@ To select between the series expansion at $x = 0$, the expansion at $x = 1$, and
 We select $K_A$ and estimate $p_A$ heuristically using machine precision
 floating-point computations, working with logarithmic magnitudes to
 avoid underflow and overflow.
+For example, when~$A$ is the asymptotic series, we search for a
+small~$K_A$ such that $\log(K_A!/(2n\sin^{K_A}\theta)) \leq -(p + p_A)$
+for some small~$p_A$, in accordance with~\eqref{eq:truncerr0b}.
 During the actual evaluation of the series expansions, $K_A$ and $p_A$ are then given;
 we compute rigorous upper bounds
 for the truncation error via
@@ -1302,10 +1353,12 @@ $x$ to a ball containing the root of $P_n$ with index~$k$ (we use the indexing
 $0 \le k < n$, with $k = 0$ giving the root closest to 1),
 computed to $p$-bit precision.
 It also sets $w$ to the corresponding quadrature weight.
-We use the formulas in \cite{petras1999computation} to
+We use the formulas in \cite[Theorem~1(c)]{petras1999computation} to
 compute an initial enclosure with roughly machine precision,
 followed by refinements with the interval Newton method
 at doubling precision steps for very high precision.
+We deduce the quadrature weights thanks to the classical expression as
+functions of the nodes recalled in equation~\eqref{eq:glquad}.
 
 \begin{table}[h!]
 \caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision.
