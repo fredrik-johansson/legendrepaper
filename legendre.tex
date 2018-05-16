@@ -103,7 +103,8 @@ For some applications in computer algebra, number theory,
 mathematical physics, and experimental mathematics,
 it is necessary to compute integrals to an accuracy of
 hundreds of digits, and occasionally even tens of
-thousands of digits~\cite{bailey2011high}.
+thousands of
+digits~\cite{bailey2011high,BaileyBorweinCrandall2006,Broadhurst2016,Molin2010a}.
 It is well known that the Gauss-Legendre formula~\cref{eq:glquad} is nearly
 optimal among all quadrature rules for integrands that are
 well-approximated by polynomials, in particular for
@@ -117,7 +118,10 @@ containing $(-1,1)$, in terms of $\sup_{z \in D} |f(z)|$
 and the distance from the boundary of $D$ to $(-1,1)$.
 For integration of smooth functions without endpoint singularities,
 Gauss-Legendre quadrature achieves an accuracy of~$p$ bits with $n = \OO(p)$
-evaluation points.
+evaluation points%
+\footnote{See \cref{sec:vsothers} for further comments on the choice of
+Gauss-Legendre quadrature over alternative methods, such as
+Clenshaw-Curtis quadrature.}.
 Even when the conditions are not ideal for using \cref{eq:glquad} directly,
 rapid convergence is often possible
 by combining~\cref{eq:glquad}
@@ -285,7 +289,8 @@ for extremely high precision integration.
 
 Our code for evaluating Legendre polynomials and computing
 Gauss-Legendre nodes and weights is freely available as part of
-the Arb library \cite{Johansson2017arb}.
+the Arb library \cite{Johansson2017arb}%
+\footnote{\url{http://arblib.org/}}.
 
 \section{General strategy}
 
@@ -333,10 +338,23 @@ $n$, $p$, and~$x$.
 
 Our evaluation algorithms rely on ball arithmetic internally to
 propagate the error bounds up to the final result.
-Since some methods would produce unsatisfactorily large enclosures
-when executed on input balls $x = [m \pm r]$ of radius $r > 0$, we
-evaluate $P_n(m)$ (with higher internal precision if necessary) and
-use a first-order bound
+Therefore, to ensure that the enclosure output by our evaluation
+algorithm contains the image of the input, it is enough to have bounds
+on the truncation errors associated to each of the approximate
+expressions of~$P_n$ that we use.
+The corresponding bounds are stated in equations \eqref{eq:truncerr0},
+\eqref{eq:truncerr1}, and \eqref{eq:truncerr2}.
+
+To limit overestimation and computational overhead, we deviate from the
+direct use of ball arithmetic on two occasions.
+First, Algorithm~\ref{alg:gmprec} does not keep track of round-off
+errors internally: instead, we prove an a priori bound on the
+accumulated error (Corollary~\ref{cor:bound-gmprec}) and add it to the
+radius of the output ball after calling that algorithm.
+Second, since some methods would produce unsatisfactorily large
+enclosures when executed on input balls $x = [m \pm r]$ of radius
+$r > 0$, we evaluate $P_n(m)$ (with higher internal precision if
+necessary) and use a first-order bound
 \[ \max_{\xi \in x} |P_n(\xi) - P_n(m)|
    \le r \max_{\xi \in x} |P'_n(\xi)| \]
 to separately bound the propagated error.
@@ -503,9 +521,9 @@ Bonnet's formula~\cref{eq:recurrence} gives
 In a direct implementation of this recurrence in ball arithmetic, the
 width of the enclosures would roughly double at every iteration,
 requiring to increase the internal working precision by $\OO(n)$ bits.
-We avoid this issue by performing a pen-and-paper round-off error
-analysis of the evaluation that yields a less pessimistic bound on the
-accumulated error.
+We avoid this issue by performing an a priori round-off error
+analysis (to be presented now) of the evaluation that yields a less
+pessimistic bound on the accumulated error.
 Additionally, the static error bound allows us to implement the
 recurrence in fixed-point arithmetic, avoiding the overhead of
 floating-point and interval operations.
@@ -648,6 +666,7 @@ and therefore
 \end{proof}
 
 \begin{corollary}
+\label{cor:bound-gmprec}
 Suppose that $x = \hat x \, 2^{-t}$ for some $t \geq 0$ and
 $\hat x \in \mathbb Z$.
 The sequence $(\hat p_n)_{n \geq 0}$ defined by \cref{eq:rec-fxpt}
@@ -808,7 +827,7 @@ and the error term satisfies
 The coefficients $C_{n,k}$ are a hypergeometric sequence with
 \begin{equation}
 \label{eq:asymprec}
-\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.
+\frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{4 k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.
 \end{equation}
 To evaluate the error bound, we can use the following inequality deduced
 from~\eqref{eq:Cnk-Gamma}:
@@ -903,11 +922,10 @@ after the $k = K - 1$ term satisfies
 provided that $\alpha < 1$.
 \end{proposition}
 
-For bounding $A_{\sigma}(d,K)$ in this expression,
-and for selecting the appropriate truncation point $K$,
-we use
-the binomial closed forms together with the remarks
-in \cref{sec:binomial}.
+For bounding $A_{\sigma}(d,K)$ in this expression, and for selecting an
+appropriate truncation point $K$, we use the binomial closed forms
+\eqref{eq:pzeroseries0}, \eqref{eq:pzeroseries1} together with the
+remarks in \cref{sec:binomial}.
 
 The alternating series \cref{eq:pzeroseries0} and \cref{eq:pzeroseries1}
 may suffer from significant cancellation, which requires use of
@@ -1022,7 +1040,7 @@ recurrence uses $\OO(K)$ expensive operations.
     \While{$k \ge \Omega$}
         \State $u \gets \min(4, k + 1 - \Omega)$  \Comment{Tuning parameter: any $1 \le u \le k+1-\Omega$ can be used}
         \State $(a, b) \gets (k - u + 1, k)$  \Comment{Unrolled range}
-        \State $c \gets \prod_{j=a}^b p(j)$ \Comment{Small integer coefficient}
+        \State \label{step:coeff1} $c \gets \prod_{j=a}^b p(j)$ \Comment{Small integer coefficient}
         \While{$k \ge a$}
             \State $r \gets k \bmod m$
             \If{$k = b$}
@@ -1033,7 +1051,7 @@ recurrence uses $\OO(K)$ expensive operations.
             \If{$r = 0$ \textbf{and} $k \ne 0$}
                 \State $s \gets s \cdot x^m$ \Comment{Using precomputed power of $x$}
             \EndIf
-            \State $c \gets (c / p(k)) q(k)$ \Comment{Exact small integer division}
+            \State \label{step:coeff2} $c \gets (c / p(k)) q(k)$ \Comment{Exact small integer division}
             \State $k \gets k - 1$
         \EndWhile
         \State $s \gets s / c$
@@ -1045,7 +1063,8 @@ recurrence uses $\OO(K)$ expensive operations.
 \Cref{alg:hyprs} presents our version of rectangular splitting
 for the present application.
 We implement the various series expansions by defining
-the polynomial evaluation functions $p(k), q(k)$ according to formulas
+the functions $p(k), q(k)$ used in steps
+\ref{step:coeff1}~and~\ref{step:coeff2} according to formulas
 \cref{eq:asymprec}, \cref{eq:pzerorec},
 \cref{eq:poneprec}, \cref{eq:ponerecprime}.
 
@@ -1067,7 +1086,11 @@ would be possible using fixed-point arithmetic with tight
 control of the word-level operations
 as was done for elementary functions in~\cite{Johansson2015elementary}.
 
-The algorithm contains two tuning parameters.
+The algorithm contains two tuning parameters%
+\footnote{Let us stress that the choice of these parameters only affects
+the performance of the algorithm, not its correctness.
+The same remark holds every other time we resort to heuristics in this
+article.}.
 The splitting parameter $m$ controls the
 number $m$ of multiplications for powers versus the number $K / m$ of
 multiplications for Horner's rule.
@@ -1245,12 +1268,28 @@ used over the most of the range.
 
 \section{Benchmarks}
 
-Except where otherwise noted, the timings were obtained on a
+As already mentioned, our code for computing values and roots of
+Legendre polynomials is part of the Arb library, available
+from~\url{http://arblib.org/}.
+The experimental results given in this section were obtained using
+version~FIXME of Arb.
+The implementation of the algorithms of this article is located in the
+files \texttt{arb\_hypgeom/legendre\_p\_ui\_*} of the Arb source tree.
+In \cref{sec:bench-variants}, we also use some ad hoc code available
+from this paper's public git repository%
+\footnote{\url{https://github.com/fredrik-johansson/legendrepaper/}}
+when comparing the main algorithm with variants absent from the Arb
+implementation.
+The source code for the experiments themselves can be found in the same
+git repository.
+Except where otherwise noted, we ran the programs on a
 1.90 GHz Intel Core i5-4300U CPU using a single core.
 
 \label{sec:bench}
 
 \subsection{Polynomial evaluation}
+
+\label{sec:bench-variants}
 
 \Cref{fig:benchplot} compares the performance of different methods
 for evaluating $(P_n(x), P'_n(x))$ on a set of $n/2$ points
