@@ -91,9 +91,9 @@ The definition implies that $P_n$ has $n$ roots all located in $(-1,1)$.
 Perhaps the most important application of Legendre polynomials
 is the Gauss-Legendre quadrature rule
 \begin{equation}
+\label{eq:glquad}
 \int_{-1}^{1} f(x) \dx \approx \sum_{i=0}^{n-1} w_i f(x_i), \qquad
 w_i = \frac{2}{(1-x_i^2) [P'_n(x_i)]^2},
-\label{eq:glquad}
 \end{equation}
 where the \emph{nodes} $x_i$ are the roots of $P_n$.
 The quantity~$w_i$ is called the \emph{weight} associated
@@ -212,7 +212,7 @@ $p$-bit accuracy in $\OOtilde(n^2)$ (equivalently, $\OOtilde(p^2)$) bit operatio
 \end{theorem}
 
 \begin{proof}[Proof sketch]
-Using the formulas in~\cite{petras1999computation},
+Using the formulae in~\cite{petras1999computation},
 we can compute good initial values for Newton iteration
 in $\OOtilde(n)$ bit operations.
 The Newton iteration can be performed for all roots
@@ -227,7 +227,7 @@ Since $p \sim n$ by assumption, this does not change the complexity bound.
 Completing the details
 of the proof is a technical exercise.
 Despite being elegant in theory,
-the algorithm behind \cref{thm:complexity} has high overhead
+the algorithm behind \cref{thm:complexity} has a high overhead
 in practice, in large part due to the need to work
 with greatly increased precision.
 Working with expanded polynomials and
@@ -296,8 +296,8 @@ the Arb library \cite{Johansson2017arb}%
 
 \label{sec:general}
 
-We work in the framework on midpoint-radius interval arithmetic,
-also called ball arithmetic.
+We work in the framework of midpoint-radius interval arithmetic,
+also called ball arithmetic~\cite{vdH:ball,Johansson2017arb}.
 In general, given an integer~$n$ and a ball $x = [m \pm r] = [m-r, m+r]$,
 we want to evaluate $P_n(x)$ at~$x$,
 yielding an enclosure $y = [m' \pm r']$ such that $P_n(\xi) \in y$
@@ -308,7 +308,7 @@ which is the most interesting part of the domain for applications.
 Since $P_n(-x) = (-1)^n P_n(x)$, we can further
 restrict to $0 \le x \le 1$.
 Some authors suggest working with $P_n(\cos(\theta))$ instead of $P_n(x)$
-directly to improve numerical stability for $x$ close to 1.
+directly to improve numerical stability for $x$ close to~$\pm 1$.
 This is not necessary in arbitrary-precision arithmetic since
 a slight precision increase (of the order of $\OO(\log n)$ bits, since
 the distance between two successive roots of~$P_n$ close to~$\pm1$ is
@@ -328,7 +328,7 @@ $P_n(x)$ and $P_{n-1}(x)$ using
 \begin{equation} \label{eq:mixed}
   (x^2 - 1) P'_n(x) = n \bigl( x P_n(x) - P_{n-1}(x) \bigl).
 \end{equation}
-When $x$ is close to~$1$, though, this formula involves a
+When $x$ is close to~$\pm 1$, though, this formula involves a
 cancellation of about $\abs{\log_2(1 - x)}$ bits in the subtraction,
 followed by a division by $x^2 - 1$.
 Therefore, a direct evaluation of $P'_n(x)$ may be preferable to reduce
@@ -354,7 +354,7 @@ radius of the output ball after calling that algorithm.
 Second, since some methods would produce unsatisfactorily large
 enclosures when executed on input balls $x = [m \pm r]$ of radius
 $r > 0$, we evaluate $P_n(m)$ (with higher internal precision if
-necessary) and use a first-order bound
+necessary) and $P'_n(x)$ and use a first-order bound
 \[ \max_{\xi \in x} |P_n(\xi) - P_n(m)|
    \le r \max_{\xi \in x} |P'_n(\xi)| \]
 to separately bound the propagated error.
@@ -414,7 +414,8 @@ Then, in the notation of \cref{lemma:majorants}, we have the bound
    = \sum_{n=0}^{\infty} \frac{\sin\bigl((n+1) \theta\bigr)}{\sin(\theta)} z^n
    \ll_z \frac{\sin(\theta)^{-1}}{1 - z}. \]
 In addition, Bernstein's inequality for the Legendre polynomials
-(see, e.g.,~\cite{ChowGatteschiWong1994})
+\cite{AntonovHolsenikov1980}
+(see also~\cite{ChowGatteschiWong1994})
 combined with the logarithmic convexity of the Gamma function yields
 \[ |P_n(x)| \leq \frac{\sqrt{2}}{\sqrt{\pi}} \frac{1}{\sqrt{\sin \theta}}
                  \frac{1}{\sqrt{n+1/2}}
@@ -465,9 +466,12 @@ methods:
 \begin{itemize}
   \item the iterative computation of~$P_n(x)$
   via the three-term recurrence~\cref{eq:recurrence},
-  \item an asymptotic expansion of $P_n(x)$ as~$n \to \infty$,
-  \item the usual expanded expression of $P_n$ in the monomial basis,
-  \item the analogous terminating expansion at~$1$.
+  \item the asymptotic expansion~\eqref{eq:asymptotic}
+  of $P_n(x)$ as~$n \to \infty$,
+  \item the usual expanded expression \eqref{eq:pzeroseries0},
+  \eqref{eq:pzeroseries1} of $P_n$ in the monomial basis,
+  \item the analogous terminating expansion \eqref{eq:poneseries}
+  at~$1$.
 \end{itemize}
 All three expansions can be written as hypergeometric
 series, i.e., sums of the form $\sum_k c_k \xi^k$ where $c_k/c_{k-1}$
@@ -491,7 +495,7 @@ for a relative error of about $2^{-p}$ measured with respect
 to monotone envelopes for $P_n(x)$ and $P'_n(x)$ as in~\cite{Bogaert2012}.
 The relative error of a computed ball for $P_n(x)$ where $x$ is near a zero $x_k$
 can be arbitrarily large, but the relative error of $P'_n(x)$ near $x_k$
-will be small, which is sufficient for Newton iteration.
+will be small, which is sufficient for the Newton iteration method.
 Since the output consists of a ball, we also have the option of catching
 a result with large relative error and repeating the evaluation with a
 higher precision as needed.
@@ -715,7 +719,7 @@ $\vp$, $\vq$, $\mathtt{den}$ before the loop,
 and $\vp_k$, $\vq_k$, $\vd_k$ their values at the end of iteration~$k$.
 Consider the sequence
 $\tilde p_k = 2^{-t} \vq_{k-1}/\vd_{k-1}$, $k \geq 1$,
-extended by $\tilde p_0 = 1$ and an arbitrary~$\tilde p_{-1}$.
+extended by $\tilde p_0 = 1$ and an arbitrary (finite)~$\tilde p_{-1}$.
 For all $k \geq 1$, depending whether the conditional branch is taken, we
 have one of the systems of equations
 \begin{align}
@@ -816,9 +820,9 @@ P_n(\cos(\theta)) = \left(\frac{2}{\pi \sin(\theta)}\right)^{1/2}
 \label{eq:Cnk-Gamma}
 C_{n,k} = \frac{[\Gamma(k+1/2)]^2 \Gamma(n+1)}{\pi 2^k \Gamma(n+k+3/2) \Gamma(k+1)},
 \end{equation}
-\begin{equation}
+\begin{equation*}
 \alpha_{n,k}(\theta) = (n+k+1/2) \theta - (k+1/2) \pi / 2,
-\end{equation}
+\end{equation*}
 and the error term satisfies
 \begin{equation}
 \label{eq:truncerr0}
@@ -844,7 +848,7 @@ The particular form \cref{eq:asymptotic}
 must be used for this purpose; there is a slightly different version of the expansion
 which is asymptotic to $P_n(x)$ (for fixed $K$ when $n \to \infty$)
 but paradoxically
-converges to $2 P_n(x)$ (for fixed $n$ when $K \to \infty$); see \cite{Olver1997} and \cite{Olver2010}.
+converges to $2 P_n(x)$ (for fixed $n$ when $K \to \infty$); see \cite[Section~10.3]{Olver1997} and \cite[Section~18.15(iii)]{Olver2010}.
 
 We can restate \cref{eq:asymptotic} as a hypergeometric series
 by working with complex numbers.
@@ -938,10 +942,10 @@ $f_0 = 1$, $f_1 = |z|$ shows that
 \[ |P_n(z)| \le |P_n(i|z|)| \le \left(|z| + \sqrt{1 + |z|^2}\right)^n. \]
 Therefore, the possible cancellation assuming that $|P_n(x)| \approx 1$
 is about
-\begin{equation}
+\begin{equation*}
 p_A = n \log_2\bigl(|x| + \sqrt{1 + |x|^2}\bigr)
-\end{equation}
-bits (which is at most $(\log_2 (1+\sqrt{2})) \, n \approx 1.27156n$),
+\end{equation*}
+bits (which is at most $n \log_2 (1+\sqrt{2}) \approx 1.27\, n$),
 so using ball arithmetic with about $p + p_A$ bits of working precision
 for the series evaluation gives $p$-bit accuracy.
 
@@ -1064,7 +1068,7 @@ recurrence uses $\OO(K)$ expensive operations.
 for the present application.
 We implement the various series expansions by defining
 the functions $p(k), q(k)$ used in steps
-\ref{step:coeff1}~and~\ref{step:coeff2} according to formulas
+\ref{step:coeff1}~and~\ref{step:coeff2} according to formulae
 \cref{eq:asymprec}, \cref{eq:pzerorec},
 \cref{eq:poneprec}, \cref{eq:ponerecprime}.
 
@@ -1196,7 +1200,8 @@ Since ${2n \choose n} \approx 4^n$, it is best to use
 an exact algorithm when $n < Cp$ for some small constant $C > 1/2$.
 We use the binomial function provided by GMP for $n < 6p + 200$
 and otherwise use an asymptotic series for ${2n \choose n}$
-with error bounds given in~\cite{brent2016asymptotic}.
+with error bounds given
+in~[Corollaries 1~and~2]\cite{brent2016asymptotic}.
 
 We also need to quickly estimate the magnitude of binomial coefficients
 for error bounds of series truncations.
@@ -1295,7 +1300,7 @@ Except where otherwise noted, we ran the programs on a
 for evaluating $(P_n(x), P'_n(x))$ on a set of $n/2$ points
 distributed like the positive roots of $P_n(x)$
 to simulate one stage of Newton iteration at $p$-bit precision.
-The time for the three-term recurrence is set to 1, i.e.\ we divide
+The time for the three-term recurrence is set to 1, i.e., we divide
 the other timings by this measurement.
 The following methods are timed:
 
@@ -1305,7 +1310,7 @@ with automatic selection between the three-term
 recurrence and different
 series expansions.
 \item The main algorithm without
-the three-term recurrence as the basecase, i.e.\ using series expansions
+the three-term recurrence as the basecase, i.e., using series expansions
 even for very small~$n$.
 \item Fast multipoint
 evaluation of the expanded polynomials $P_n(x)$ and $P'_n(x)$.
@@ -1392,7 +1397,7 @@ $x$ to a ball containing the root of $P_n$ with index~$k$ (we use the indexing
 $0 \le k < n$, with $k = 0$ giving the root closest to 1),
 computed to $p$-bit precision.
 It also sets $w$ to the corresponding quadrature weight.
-We use the formulas in \cite[Theorem~1(c)]{petras1999computation} to
+We use the formulae in \cite[Theorem~1(c)]{petras1999computation} to
 compute an initial enclosure with roughly machine precision,
 followed by refinements with the interval Newton method
 at doubling precision steps for very high precision.
@@ -1494,7 +1499,8 @@ With default parameters, this program computes the rules of degree $n = 3 \cdot 
 for $1 \le i \le 10$ at 3\,408 bits of precision, intended as
 a precomputation for performing
 degree-adaptive numerical integrations with up to 1\,000 decimal digit accuracy.
-This takes about 1\,300 seconds (our implementation takes 32 seconds).
+This takes about 1\,300 seconds in total (our implementation takes 32
+seconds).
 A breakdown for each degree level
 is shown in \cref{tab:arprectimings}.
 
@@ -1504,7 +1510,7 @@ quadrature rules for the degrees~$n$ used by ARPREC.
 Right columns: for three different integrals, the
 error $|\int_{-1}^1 f(x) \dx - \sum_{k=0}^{n-1} w_k f(x_k)|$ of the degree-$n$
 quadrature rule, and the time to evaluate this degree-$n$ approximation
-of the integral at 1\,000-digit precision in Arb given precomputed nodes and weights $(x_k, w_k)$.}
+of the integral at 1\,000-digit precision in Arb given the nodes and weights $(x_k, w_k)$.}
 \begin{center}
 \begin{tabular}{ r | c c | c c| c c | c c }
 $n$ & ARPREC\! & Our code &
@@ -1547,9 +1553,8 @@ $2^{-9}$ & 7\,955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\
 \end{center}
 \end{table}
 
-\Cref{tab:arprectimings} also
-shows the approximation error
-and the evaluation time (using precomputed nodes and weights)
+\Cref{tab:arprectimings} also shows the approximation error and the
+evaluation time (not counting the computation of the nodes and weights)
 for the degree-$n$ approximations of three different integrals,
 illustrating the relative costs and realistic requirements for $n$.
 As motivation for the third integral, we might think
@@ -1568,7 +1573,7 @@ grows linearly with~$n$ beyond $n \approx p$,
 increasing the degree further is viable,
 and potentially useful if the integrand is expensive to evaluate.
 
-In the present work, we abstain from a more detailed discussion of
+In the present work, we refrain from a more detailed discussion of
 adaptive integration strategies and the computation
 of error bounds for the integral itself.
 However, we mention that Arb contains an implementation of a
@@ -1609,7 +1614,7 @@ analytic integrands with endpoint singularities.
 Clenshaw-Curtis quadrature uses the Chebyshev nodes
 $\cos(\pi k / n), 0 \le k \le n$, and the corresponding weights can be expressed
 by a discrete cosine transform which takes $\OO(n \log n)$
-arithmetic operations to compute by FFT.
+arithmetic operations to compute by an FFT.
 As a rule of thumb, $2n$-point Clenshaw-Curtis quadrature
 gives the same accuracy as $n$-point Gauss-Legendre quadrature
 (for instance, the 384-point Clenshaw-Curtis rule gives
@@ -1687,7 +1692,8 @@ quadrature have the same quasi-optimal asymptotic bit complexity,
 up to logarithmic factors.
 
 Our experiments show that the algorithm in \cref{thm:complexity}
-hardly is worthwhile. However, our main algorithm does achieve a
+hardly is worthwhile. However, the hybrid method described in
+\crefrange{sec:general}{sec:eval} does achieve a
 significant speedup for practical $p$ and $n$
 which allows us to compute Gauss-Legendre quadrature rules for
 1\,000-digit integration in 1-2 seconds and for 10\,000-digit integration in 10-20 minutes
@@ -1710,7 +1716,8 @@ to obtain large-$n$ asymptotic expansions with suitable error bounds.
 \section*{Acknowledgements}
 
 We thank Bruno Salvy for pointing out Petras' paper~\cite{petras1999computation}.
-MM was supported in part by ANR grant ANR-14-CE25-0018-01 (FastRelax).
+Marc Mezzarobba was supported in part by ANR grant ANR-14-CE25-0018-01
+(Fast\-Relax).
 
 \bibliographystyle{siamplain}
 \bibliography{references}
