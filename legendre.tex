@@ -105,18 +105,20 @@ it is necessary to compute integrals to an accuracy of
 hundreds of digits, and occasionally even tens of
 thousands of
 digits~\cite{bailey2011high,BaileyBorweinCrandall2006,Broadhurst2016,Molin2010a}.
-It is well known that the Gauss-Legendre formula~\cref{eq:glquad} is nearly
-optimal among all quadrature rules for integrands that are
-well-approximated by polynomials, in particular for
-analytic~$f$ without singularities close to
-the path of integration~\cite{kowalski1985gauss,trefethen2008gauss}.
-As a special case, the $n$-point rule~\cref{eq:glquad} is exact
+It is well known that the Gauss-Legendre formula~\cref{eq:glquad} is
+among the best possible quadrature rules for integrands that are
+well-approximated by polynomials.
+(It is optimal among all quadrature rules for functions analytic on
+suitable neighborhoods of the path of integration~\cite{kowalski1985gauss},
+though such optimality statements should not be
+over-interpreted~\cite{Trefethen2011}.)
+In particular, the $n$-point rule~\cref{eq:glquad} is exact
 when $f$ is a polynomial of degree at most $2n-1$.
 In general, the error in~\cref{eq:glquad} can be bounded in terms of
-$\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or if $f$ is analytic on a domain $D$
-containing $(-1,1)$, in terms of $\sup_{z \in D} |f(z)|$
-and the distance from the boundary of $D$ to $(-1,1)$.
-For integration of smooth functions without endpoint singularities,
+$\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or, if $f$ is analytic on an
+elliptical domain~$D$ with foci at~$\pm 1$, in terms of
+$\sup_{z \in D} |f(z)|$ and the semi-axes of the ellipse.
+For integration of analytic functions (without endpoint singularities),
 Gauss-Legendre quadrature achieves an accuracy of~$p$ bits with $n = \OO(p)$
 evaluation points%
 \footnote{See \cref{sec:vsothers} for further comments on the choice of
@@ -202,13 +204,14 @@ As a consequence, the full set of nodes and weights
 for the degree-$n$ quadrature rule
 can be computed in $\OOtilde(n^2 p)$ time.
 For numerical integration of analytic functions
-where we typically have $p \sim n$, a better (indeed, optimal) estimate
+where we typically have $p \approx n$, a better (indeed, optimal) estimate
 than the classical $\OOtilde(n^3)$ bound is possible.
 
 \begin{theorem}
 \label{thm:complexity}
-If $p \sim n$, then the Gauss-Legendre nodes and weights of degree $n$ can be computed to
-$p$-bit accuracy in $\OOtilde(n^2)$ (equivalently, $\OOtilde(p^2)$) bit operations.
+If $p \sim \alpha n$ for some fixed~$\alpha$, then the Gauss-Legendre
+nodes and weights of degree $n$ can be computed to $p$-bit accuracy in
+$\OOtilde(n^2)$ (equivalently, $\OOtilde(p^2)$) bit operations.
 \end{theorem}
 
 \begin{proof}[Proof sketch]
@@ -221,7 +224,8 @@ $\OOtilde(n p)$ bit operations.
 Fast multipoint evaluation is numerically unstable and
 generically loses $\OO(n)$ bits of accuracy, but we can compensate for
 this loss by using $\OO(n)$ guard bits~\cite{kobel2013fast}.
-Since $p \sim n$ by assumption, this does not change the complexity bound.
+Since $p \sim \alpha n$ by assumption, this does not change the
+complexity bound.
 \end{proof}
 
 Completing the details
