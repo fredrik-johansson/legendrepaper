@@ -260,7 +260,7 @@ our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
 classical methods. However, our algorithm has much lower overhead.
 For parameters $p, n \leq 10^5$ which are most relevant to
 applications, the observed running time is effectively subcubic.
-Our algorithm outperforms that of Theorem~\ref{thm:complexity} for
+Our algorithm outperforms that of \cref{thm:complexity} for
 practically any combination of $n$~and~$p$ in that range.
 Furthermore, if $p = \OO(1)$, the complexity reduces to $\OOtilde(n)$
 as in the machine-precision implementations by
@@ -351,9 +351,9 @@ The corresponding bounds are stated in equations \eqref{eq:truncerr0},
 
 To limit overestimation and computational overhead, we deviate from the
 direct use of ball arithmetic on two occasions.
-First, Algorithm~\ref{alg:gmprec} does not keep track of round-off
+First, \cref{alg:gmprec} does not keep track of round-off
 errors internally: instead, we prove an a priori bound on the
-accumulated error (Corollary~\ref{cor:bound-gmprec}) and add it to the
+accumulated error (\cref{cor:bound-gmprec}) and add it to the
 radius of the output ball after calling that algorithm.
 Second, since some methods would produce unsatisfactorily large
 enclosures when executed on input balls $x = [m \pm r]$ of radius
@@ -371,7 +371,7 @@ Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
 series $f(z)$, and write $f(z) \ll_z \hat f(z)$ if
 $| [z^n] f(z) | \leq [z^n] \hat f(z)$ for all $n$.
 If $f$, $g$, $\hat f$, $\hat g$ are such that
-$f(z) \ll_z \hat f(z)$ and $g(z) \ll_z \hat g(z)$, then we also have
+$f(z) \ll_z \hat f(z)$ and $g(z) \ll_z \hat g(z)$, then
 $\int_0^z f \ll_z \int_0^z \hat f$ and
 $f(z)g(z) \ll_z \hat f(z) \hat g(z)$.
 \end{lemma}
@@ -1276,7 +1276,8 @@ As already mentioned, our code for computing values and roots of
 Legendre polynomials is part of the Arb library, available
 from~\url{http://arblib.org/}.
 The experimental results given in this section were obtained using
-version~FIXME of Arb.
+prerelease builds of
+version~2.13 of Arb.
 The implementation of the algorithms of this article is located in the
 files \texttt{arb\_hypgeom/legendre\_p\_ui\_*} of the Arb source tree.
 In \cref{sec:bench-variants}, we also use some ad hoc code available
@@ -1286,7 +1287,8 @@ when comparing the main algorithm with variants absent from the Arb
 implementation.
 The source code for the experiments themselves can be found in the same
 git repository.
-Except where otherwise noted, we ran the programs on a
+Except where otherwise noted, we ran the programs under 64-bit Linux on a
+laptop with a
 1.90 GHz Intel Core i5-4300U CPU using a single core.
 
 \label{sec:bench}
