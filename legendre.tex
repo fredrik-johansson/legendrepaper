@@ -569,23 +569,18 @@ accumulated a denominator of the size of a machine word.
 void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {
     mpz_t tmp; int k; mpz_init(tmp);
     mp_limb_t denlo, den = 1;
-    mpz_set_ui(p, 1);
-    mpz_mul_2exp(p, p, t);
+    mpz_set_ui(p, 1); mpz_mul_2exp(p, p, t);
     mpz_set(q, x);
     for (k = 1; k < n; k++) {
-        mpz_mul(tmp, q, x);
-        mpz_tdiv_q_2exp(tmp, tmp, t);
-        mpz_mul_si(p, p, -k*k);
-        mpz_addmul_ui(p, tmp, 2*k+1);
+        mpz_mul(tmp, q, x); mpz_tdiv_q_2exp(tmp, tmp, t);
+        mpz_mul_si(p, p, -k*k); mpz_addmul_ui(p, tmp, 2*k+1);
         mpz_swap(p, q);
         if (mpn_mul_1(&denlo, &den, 1, k+1)) {
-            mpz_tdiv_q_ui(p, p, den);
-            mpz_tdiv_q_ui(q, q, den);
+            mpz_tdiv_q_ui(p, p, den); mpz_tdiv_q_ui(q, q, den);
             den = k+1;
         } else den = denlo;
     }
-    mpz_tdiv_q_ui(p, p, den/n);
-    mpz_tdiv_q_ui(q, q, den);
+    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);
     mpz_clear(tmp);
 }
 \end{verbatim}
