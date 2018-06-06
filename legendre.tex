@@ -1455,15 +1455,16 @@ $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\
 numbers in parentheses show the speedup of our code compared to Pari/GP.}
 \label{tab:parispeedup}
 \begin{center}
+\setlength{\tabcolsep}{1ex}
 \begin{tabular}{ r | c c c c c }
 $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\ \hline\rule{0pt}{3ex}
-20      & 0.00059 (4.4)  &  0.00070 (3.1)  &  0.0015 (2.9)  &  0.0035 (2.9)  &  0.078 (3.9)  \\
-50      & 0.0043 (9.6)  &  0.0050 (5.8) &  0.010 (4.9)  &  0.022 (4.1) &  0.43 (6.0)  \\
-100     &  0.020 (15)   &   0.023 (7.4)  &   0.045 (6.3)  &  0.089 (5.5) &  1.5 (8.1)  \\
-200     &  0.11 (20)   &  0.13 (11)  &  0.24 (9.1)  &  0.45 (8.1)  &  6.5 (11)  \\
-500     &  2.0 (86)     & 2.1 (35)  &  2.9 (18)  &  5.1 (16)  &  58 (22)  \\
-1\,000  & 25 (477)    &  26 (180) &  29 (49)  &  39 (32)  & 300 (33) \\
-2\,000  &  496 (5\,767)   & 478 (1\,604)  &  474 (423)  &  532 (127)  &  1\,880 (58)  \\
+20      & 0.00059 (\footnotesize{$\times 4.4$)}  &  0.00070 (\footnotesize{$\times 3.1$)}  &  0.0015 (\footnotesize{$\times 2.9$)}  &  0.0035 (\footnotesize{$\times 2.9$)}  &  0.078 (\footnotesize{$\times 3.9$)}  \\
+50      & 0.0043 (\footnotesize{$\times 9.6$)}  &  0.0050 (\footnotesize{$\times 5.8$)} &  0.010 (\footnotesize{$\times 4.9$)}  &  0.022 (\footnotesize{$\times 4.1$)} &  0.43 (\footnotesize{$\times 6.0$)}  \\
+100     &  0.020 (\footnotesize{$\times 15$)}   &   0.023 (\footnotesize{$\times 7.4$)}  &   0.045 (\footnotesize{$\times 6.3$)}  &  0.089 (\footnotesize{$\times 5.5$)} &  1.5 (\footnotesize{$\times 8.1$)}  \\
+200     &  0.11 (\footnotesize{$\times 20$)}   &  0.13 (\footnotesize{$\times 11$)}  &  0.24 (\footnotesize{$\times 9.1$)}  &  0.45 (\footnotesize{$\times 8.1$)}  &  6.5 (\footnotesize{$\times 11$)}  \\
+500     &  2.0 (\footnotesize{$\times 86$)}     & 2.1 (\footnotesize{$\times 35$)}  &  2.9 (\footnotesize{$\times 18$)}  &  5.1 (\footnotesize{$\times 16$)}  &  58 (\footnotesize{$\times 22$)}  \\
+1\,000  & 25 (\footnotesize{$\times 477$)}    &  26 (\footnotesize{$\times 180$)} &  29 (\footnotesize{$\times 49$)}  &  39 (\footnotesize{$\times 32$)}  & 300 (\footnotesize{$\times 33$)} \\
+2\,000  &  496 (\footnotesize{$\times 5\,767$)}   & 478 (\footnotesize{$\times 1\,604$)}  &  474 (\footnotesize{$\times 423$)}  &  532 (\footnotesize{$\times 127$)}  &  1\,880 (\footnotesize{$\times 58$)}  \\
 \end{tabular}
 \end{center}
 \end{table}
