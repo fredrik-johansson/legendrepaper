@@ -1405,8 +1405,9 @@ at doubling precision steps for very high precision.
 We deduce the quadrature weights thanks to the classical expression as
 functions of the nodes recalled in equation~\eqref{eq:glquad}.
 
-\begin{table}[h!]
-\caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision.
+\begin{table}[t!]
+\caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision
+using our code.
 (For large $n$ and $p$, the time was estimated by computing a subset of the nodes and weights.)}
 \label{tab:timings}
 \begin{center}
@@ -1437,19 +1438,20 @@ $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\
 %  25.301      26.090      28.680       39.296      300.248
 %  496.0       478.0       474.0        532.0       1880.0
 
-\begin{table}[h!]
-\caption{Speedup of our code compared to Pari/GP for generating degree-$n$ Gauss-Legendre quadrature rules with $p$-bit precision.}
+\begin{table}[t!]
+\caption{Time in seconds for Pari/GP to compute the degree-$n$ Gauss-Legendre quadrature nodes and weights with $p$-bit precision. The
+numbers in parentheses show the speedup of our code compared to Pari/GP.}
 \label{tab:parispeedup}
 \begin{center}
 \begin{tabular}{ r | c c c c c }
-$n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\ \hline
-20  & 4.4  &  3.1  &  2.9  &  2.9  &  3.9  \\ 
-50  & 9.6  &  5.8 &  4.9  &  4.1 &  6.0  \\ 
-100  &  15 &   7.4  &   6.3  &  5.5 &  8.1  \\ 
-200  &  20  &  11  &  9.1  &  8.1  &  11  \\ 
-500  &  86 & 35  &  18  &  16  &  22  \\ 
-1\,000  & 477  &  180 &  49  &  32  &  33  \\ 
-2\,000  &  5\,767 & 1\,604  &  423  &  127  &  58  \\ 
+$n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\ \hline\rule{0pt}{3ex}
+20      & 0.00059 (4.4)  &  0.00070 (3.1)  &  0.0015 (2.9)  &  0.0035 (2.9)  &  0.078 (3.9)  \\
+50      & 0.0043 (9.6)  &  0.0050 (5.8) &  0.010 (4.9)  &  0.022 (4.1) &  0.43 (6.0)  \\
+100     &  0.020 (15)   &   0.023 (7.4)  &   0.045 (6.3)  &  0.089 (5.5) &  1.5 (8.1)  \\
+200     &  0.11 (20)   &  0.13 (11)  &  0.24 (9.1)  &  0.45 (8.1)  &  6.5 (11)  \\
+500     &  2.0 (86)     & 2.1 (35)  &  2.9 (18)  &  5.1 (16)  &  58 (22)  \\
+1\,000  & 25 (477)    &  26 (180) &  29 (49)  &  39 (32)  & 300 (33) \\
+2\,000  &  496 (5\,767)   & 478 (1\,604)  &  474 (423)  &  532 (127)  &  1\,880 (58)  \\
 \end{tabular}
 \end{center}
 \end{table}
@@ -1457,8 +1459,8 @@ $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\ \hline
 \Cref{tab:timings} shows absolute timings for computing
 degree-$n$ Gauss-Legendre rules to $p$-bit precision
 by calling this function repeatedly with $0 \le k < n / 2$.
-\Cref{tab:parispeedup} shows the speedup ratio of our code
-compared to the \texttt{intnumgaussinit} function in Pari/GP
+\Cref{tab:parispeedup} compares our code
+to the \texttt{intnumgaussinit} function in Pari/GP
 which uses a generic polynomial root isolation strategy
 followed by Newton iteration for high precision refinement.
 The improvement is most dramatic for small~$p$ and large~$n$ where
@@ -1491,21 +1493,7 @@ takes 0.029 seconds) and $n = 556, p = 5\,000$ takes 17 seconds
 Of course, these timings are not directly comparable since different
 CPUs were used.
 
-The \texttt{mathinit} program included with version 2.2.19
-of D.\ H.\ Bailey's ARPREC library
-generates Gauss-Legendre quadrature nodes
-using Newton iteration together with the three-term recurrence for evaluating
-Legendre polynomials~\cite{bailey2002arprec,bailey2011high}.
-With default parameters, this program computes the rules of degree $n = 3 \cdot 2^{i+1}$
-for $1 \le i \le 10$ at 3\,408 bits of precision, intended as
-a precomputation for performing
-degree-adaptive numerical integrations with up to 1\,000 decimal digit accuracy.
-This takes about 1\,300 seconds in total (our implementation takes 32
-seconds).
-A breakdown for each degree level
-is shown in \cref{tab:arprectimings}.
-
-\begin{table}[h!]
+\begin{table}[t!]
 \caption{Left columns: time in seconds to generate 1\,000-digit
 quadrature rules for the degrees~$n$ used by ARPREC.
 Right columns: for three different integrals, the
@@ -1534,7 +1522,7 @@ $n$ & ARPREC\! & Our code &
 \end{center}
 \end{table}
 
-\begin{table}[h!]
+\begin{table}[t!]
 \caption{Left columns: step sizes $h$, number of evaluation
 points, and time to compute nodes for double exponential quadrature with Arb
 at 1\,000-digit precision. Right columns: error and evaluation
@@ -1553,6 +1541,20 @@ $2^{-9}$ & 7\,955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\
 \label{tab:dequad}
 \end{center}
 \end{table}
+
+The \texttt{mathinit} program included with version 2.2.19
+of D.\ H.\ Bailey's ARPREC library
+generates Gauss-Legendre quadrature nodes
+using Newton iteration together with the three-term recurrence for evaluating
+Legendre polynomials~\cite{bailey2002arprec,bailey2011high}.
+With default parameters, this program computes the rules of degree $n = 3 \cdot 2^{i+1}$
+for $1 \le i \le 10$ at 3\,408 bits of precision, intended as
+a precomputation for performing
+degree-adaptive numerical integrations with up to 1\,000 decimal digit accuracy.
+This takes about 1\,300 seconds in total (our implementation takes 32
+seconds).
+A breakdown for each degree level
+is shown in \cref{tab:arprectimings}.
 
 \Cref{tab:arprectimings} also shows the approximation error and the
 evaluation time (not counting the computation of the nodes and weights)
