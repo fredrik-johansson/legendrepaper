@@ -565,26 +565,37 @@ accumulated a denominator of the size of a machine word.
   \begin{algorithmic}[1]
     \Require An integer $x$ and $t \ge 0$ such that $|2^{-t} x| \le 1$, and $n \ge 1$
     \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.75 \, (n+1)(n+2) + 1) \, 2^{-t}$
+\State \verb!void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {!
+\State \verb!    mpz_t tmp; int k; mpz_init(tmp);!
+  \Comment{Comments use the notation of}
+\State \verb!    mp_limb_t denlo, den = 1;!
+  \Comment{\rlap{the proof of \cref{cor:bound-gmprec}}%
+           \phantom{Comments use the notation of}}
+\State \verb!    mpz_set_ui(p, 1); mpz_mul_2exp(p, p, t);!
+  \Comment{$\mathtt p_0 = 2^t$}
+\State \verb!    mpz_set(q, x);!
+  \Comment{$\mathtt q_0 = \hat x$}
+\State \verb!    for (k = 1; k < n; k++) {!
+\State \verb!        mpz_mul(tmp, q, x); mpz_tdiv_q_2exp(tmp, tmp, t);!
+  \Comment{$\lceil \hat x \, \mathtt q_{k-1} \, 2^{-t} \rfloor$}
+\State \verb!        mpz_mul_si(p, p, -k*k)!
+\State \verb!        mpz_addmul_ui(p, tmp, 2*k+1);!
+  \Comment{$- k^2 \mathtt p_{k-1} + (2k+1) \, \mathtt{tmp}$}
+\State \verb!        mpz_swap(p, q);!
+\State \verb!        if (mpn_mul_1(&denlo, &den, 1, k+1)) {!
+  \Comment{If multiplication overflows}
+\State \verb!            mpz_tdiv_q_ui(p, p, den);!
+  \Comment{$\lceil \mathtt p / \mathtt d_{k-1} \rfloor$}
+\State \verb!            mpz_tdiv_q_ui(q, q, den);!
+\State \verb!            den = k+1;!
+  \Comment{$\mathtt d_{k} = k+1$}
+\State \verb!        } else den = denlo;!
+  \Comment{$\mathtt d_{k} = (k+1) \, \mathtt d_{k-1}$}
+\State \verb!    }!
+\State \verb!    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);!
+\State \verb!    mpz_clear(tmp);!
+\State \verb!}!
   \end{algorithmic}
-\begin{verbatim}
-void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {
-    mpz_t tmp; int k; mpz_init(tmp);
-    mp_limb_t denlo, den = 1;
-    mpz_set_ui(p, 1); mpz_mul_2exp(p, p, t);
-    mpz_set(q, x);
-    for (k = 1; k < n; k++) {
-        mpz_mul(tmp, q, x); mpz_tdiv_q_2exp(tmp, tmp, t);
-        mpz_mul_si(p, p, -k*k); mpz_addmul_ui(p, tmp, 2*k+1);
-        mpz_swap(p, q);
-        if (mpn_mul_1(&denlo, &den, 1, k+1)) {
-            mpz_tdiv_q_ui(p, p, den); mpz_tdiv_q_ui(q, q, den);
-            den = k+1;
-        } else den = denlo;
-    }
-    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);
-    mpz_clear(tmp);
-}
-\end{verbatim}
 \end{algorithm}
 
 To bound the difference $\abs{\hat p_n \, 2^{-t} - p_n}$, we analyze
