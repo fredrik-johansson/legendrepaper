@@ -105,29 +105,35 @@ it is necessary to compute integrals to an accuracy of
 hundreds of digits, and occasionally even tens of
 thousands of
 digits~\cite{bailey2011high,BaileyBorweinCrandall2006,Broadhurst2016,Molin2010a}.
-It is well known that the Gauss-Legendre formula~\cref{eq:glquad} is
-among the best possible quadrature rules for integrands that are
-well approximated by polynomials.
-(It is optimal in a certain sense for functions analytic on
-suitable neighborhoods of the path of integration~\cite{kowalski1985gauss},
-though such optimality statements should not be
-over-interpreted~\cite{Trefethen2011}.)
-In particular, the $n$-point rule~\cref{eq:glquad} is exact
-when $f$ is a polynomial of degree at most $2n-1$.
+The Gauss-Legendre formula~\cref{eq:glquad} achieves an accuracy of~$p$ bits using
+$n = \OO(p)$ evaluation points if $f$ is analytic on a neighborhood
+of $(-1,1)$. If the neighborhood
+is large (that is, if the path of integration is well isolated
+from any singularities of~$f$), then
+the constants hidden in the $\OO$
+notation are close to the best achievable
+by any quadrature rule~\cite{kowalski1985gauss}.
+This quality is related to the fact that~\cref{eq:glquad}
+maximizes the order of accuracy among $n$-point quadrature rules for integrating polynomials,
+being exact when $f$ is any polynomial of degree up to $2n-1$;
+as a result, the accuracy is also excellent for analytic integrands
+that are well approximated by polynomials.%
+\footnote{However, statements about the near-optimality of Gauss-Legendre
+quadrature must not be over-interpreted.
+Indeed, the rate of convergence of Gauss-Legendre quadrature is \emph{not} optimal asymptotically
+when $n \to \infty$ for analytic $f$
+on a fixed neighborhood, being improvable by a small factor~\cite{Trefethen2011}.}
 In general, the error in~\cref{eq:glquad} can be bounded in terms of
 $\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or, if $f$ is analytic on an
 elliptical domain~$D$ with foci at~$\pm 1$, in terms of
 $\sup_{z \in D} |f(z)|$ and the semi-axes of the ellipse.
-For integration of analytic functions (without endpoint singularities),
-Gauss-Legendre quadrature achieves an accuracy of~$p$ bits with $n = \OO(p)$
-evaluation points%
-\footnote{See \cref{sec:vsothers} for further comments on the choice of
-Gauss-Legendre quadrature over alternative methods, such as
-Clenshaw-Curtis quadrature.}.
 Even when the conditions are not ideal for using \cref{eq:glquad} directly,
 rapid convergence is often possible
 by combining~\cref{eq:glquad}
-with adaptive subdivision of the integration path~\cite{petras2002self}.
+with adaptive subdivision of the integration path~\cite{petras2002self}.%
+\footnote{See \cref{sec:vsothers} for further comments on the choice of
+Gauss-Legendre quadrature over alternative methods, such as
+Clenshaw-Curtis quadrature.}
 
 The Gauss-Legendre scheme has the drawback
 that the quadrature nodes and weights are
@@ -184,9 +190,9 @@ As mentioned earlier, certain applications require enclosing the values
 of integrals to accuracies of this order,
 and it is often reasonable to use quadrature rules of degree~$n$ that
 grows roughly linearly with~$p$ for this purpose.
-For example, Johansson~\cite{Johansson2018a}
-studies the computation of Stieltjes constants to precisions
-of hundreds of decimal digits using complex integration, building among
+For example, Johansson and Blagouchine~\cite{Johansson2018a}
+study the computation of Stieltjes constants to precisions
+of hundreds of digits using complex integration, building among
 other things on the work described in the present paper.
 
 If we assume that the precision $p$ varies, basic arithmetic operations
@@ -1417,6 +1423,17 @@ at doubling precision steps for very high precision.
 We deduce the quadrature weights thanks to the classical expression as
 functions of the nodes recalled in equation~\eqref{eq:glquad}.
 
+\Cref{tab:timings} shows timings for computing
+degree-$n$ Gauss-Legendre rules to $p$-bit precision
+by calling this function repeatedly with $0 \le k < n / 2$.
+\Cref{tab:parispeedup} compares our code
+to the \texttt{intnumgaussinit} function in Pari/GP
+which uses a generic polynomial root isolation strategy
+followed by Newton iteration for high precision refinement.
+The improvement is most dramatic for small~$p$ and large~$n$ where
+we benefit from using asymptotic expansions, but we also obtain a
+consistent speedup for large $p$.
+
 \begin{table}[t!]
 \caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision
 using our code.
@@ -1469,17 +1486,6 @@ $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\ \hline\rule{0pt}
 \end{center}
 \end{table}
 
-\Cref{tab:timings} shows absolute timings for computing
-degree-$n$ Gauss-Legendre rules to $p$-bit precision
-by calling this function repeatedly with $0 \le k < n / 2$.
-\Cref{tab:parispeedup} compares our code
-to the \texttt{intnumgaussinit} function in Pari/GP
-which uses a generic polynomial root isolation strategy
-followed by Newton iteration for high precision refinement.
-The improvement is most dramatic for small~$p$ and large~$n$ where
-we benefit from using asymptotic expansions, but we also obtain a
-consistent speedup for large $p$.
-
 For low precision and large $n$, our implementation
 is about three orders of magnitude slower than the machine precision
 code by Bogaert \cite{bogaert2014iteration}
@@ -1505,6 +1511,28 @@ takes 0.029 seconds) and $n = 556, p = 5\,000$ takes 17 seconds
 (our implementation takes 0.53 seconds).
 Of course, these timings are not directly comparable since different
 CPUs were used.
+
+The \texttt{mathinit} program included with version 2.2.19
+of D.\ H.\ Bailey's ARPREC library
+generates Gauss-Legendre quadrature nodes
+using Newton iteration together with the three-term recurrence for evaluating
+Legendre polynomials~\cite{bailey2002arprec,bailey2011high}.
+With default parameters, this program computes the rules of degree $n = 3 \cdot 2^{i+1}$
+for $1 \le i \le 10$ at 3\,408 bits of precision, intended as
+a precomputation for performing
+degree-adaptive numerical integrations with up to 1\,000 decimal digit accuracy.
+This takes about 1\,300 seconds in total (our implementation takes 32
+seconds).
+A breakdown for each degree level
+is shown in \cref{tab:arprectimings}.
+
+\Cref{tab:arprectimings} also shows the approximation error and the
+evaluation time (not counting the computation of the nodes and weights)
+for the degree-$n$ approximations of three different integrals,
+illustrating the relative costs and realistic requirements for $n$.
+As motivation for the third integral, we might think
+of a segment of a Mellin-Barnes integral.
+The log, Airy and gamma function implementations in Arb are used.
 
 \begin{table}[t!]
 \caption{Left columns: time in seconds to generate 1\,000-digit
@@ -1554,28 +1582,6 @@ $2^{-9}$ & 7\,955 & $0.27$ & $<\varepsilon$ & 0.55 & $<\varepsilon$ & 3.49 & $<\
 \label{tab:dequad}
 \end{center}
 \end{table}
-
-The \texttt{mathinit} program included with version 2.2.19
-of D.\ H.\ Bailey's ARPREC library
-generates Gauss-Legendre quadrature nodes
-using Newton iteration together with the three-term recurrence for evaluating
-Legendre polynomials~\cite{bailey2002arprec,bailey2011high}.
-With default parameters, this program computes the rules of degree $n = 3 \cdot 2^{i+1}$
-for $1 \le i \le 10$ at 3\,408 bits of precision, intended as
-a precomputation for performing
-degree-adaptive numerical integrations with up to 1\,000 decimal digit accuracy.
-This takes about 1\,300 seconds in total (our implementation takes 32
-seconds).
-A breakdown for each degree level
-is shown in \cref{tab:arprectimings}.
-
-\Cref{tab:arprectimings} also shows the approximation error and the
-evaluation time (not counting the computation of the nodes and weights)
-for the degree-$n$ approximations of three different integrals,
-illustrating the relative costs and realistic requirements for $n$.
-As motivation for the third integral, we might think
-of a segment of a Mellin-Barnes integral.
-The log, Airy and gamma function implementations in Arb are used.
 
 The last few degree levels (with $n$ roughly larger than
 the number of decimal digits) used by ARPREC
@@ -1734,7 +1740,6 @@ to obtain large-$n$ asymptotic expansions with suitable error bounds.
 We are indebted to Nick Trefethen and two anonymous referees for their
 useful comments. We also thank Bruno Salvy for pointing out Petras'
 paper~\cite{petras1999computation}.
-
 Marc Mezzarobba was supported in part by ANR grant ANR-14-CE25-0018-01
 (Fast\-Relax).
 
