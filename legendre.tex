@@ -107,8 +107,8 @@ thousands of
 digits~\cite{bailey2011high,BaileyBorweinCrandall2006,Broadhurst2016,Molin2010a}.
 It is well known that the Gauss-Legendre formula~\cref{eq:glquad} is
 among the best possible quadrature rules for integrands that are
-well-approximated by polynomials.
-(It is optimal among all quadrature rules for functions analytic on
+well approximated by polynomials.
+(It is optimal in a certain sense for functions analytic on
 suitable neighborhoods of the path of integration~\cite{kowalski1985gauss},
 though such optimality statements should not be
 over-interpreted~\cite{Trefethen2011}.)
@@ -181,13 +181,13 @@ nodes and weights to precisions~$p$ significantly larger than machine
 precision---typically in the hundreds to thousands of bits---, with
 rigorous error bounds.
 As mentioned earlier, certain applications require enclosing the values
-of integrals to accuracies of this order%
-\footnote{As a concrete example, Johansson~\cite{Johansson2018a}
-studies the computation of Stieltjes constants~$\gamma_k$ to precisions
-of hundreds of decimal digits using complex integration, building among
-other things on the work presented in the present paper.},
+of integrals to accuracies of this order,
 and it is often reasonable to use quadrature rules of degree~$n$ that
 grows roughly linearly with~$p$ for this purpose.
+For example, Johansson~\cite{Johansson2018a}
+studies the computation of Stieltjes constants to precisions
+of hundreds of decimal digits using complex integration, building among
+other things on the work described in the present paper.
 
 If we assume that the precision $p$ varies, basic arithmetic operations
 are no longer constant-time.
@@ -495,8 +495,8 @@ when $x$ is close to~$1$.
 
 At $p$-bit precision, it is sufficient to choose algorithms
 and internal evaluation parameters to target
-an absolute error of about $2^{-p}$, or more precisely $2^{-p-\OO(\log n)}$
-for a relative error of about $2^{-p}$ measured with respect
+an absolute error of $2^{-p-\OO(\log n)}$, corresponding to
+a relative error of about $2^{-p}$ measured with respect
 to monotone envelopes for $P_n(x)$ and $P'_n(x)$ as in~\cite{Bogaert2012}.
 The relative error of a computed ball for $P_n(x)$ where $x$ is near a zero $x_k$
 can be arbitrarily large, but the relative error of $P'_n(x)$ near $x_k$
@@ -565,26 +565,37 @@ accumulated a denominator of the size of a machine word.
   \begin{algorithmic}[1]
     \Require An integer $x$ and $t \ge 0$ such that $|2^{-t} x| \le 1$, and $n \ge 1$
     \Ensure $p, q$ such that $|2^{-t} p - P_{n-1}(2^{-t} x)|, |2^{-t} q - P_{n}(2^{-t} x)| \le (0.75 \, (n+1)(n+2) + 1) \, 2^{-t}$
+\State \verb!void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {!
+\State \verb!    mpz_t tmp; int k; mpz_init(tmp);!
+  \Comment{Comments use the notation of}
+\State \verb!    mp_limb_t denlo, den = 1;!
+  \Comment{\rlap{the proof of \cref{cor:bound-gmprec}}%
+           \phantom{Comments use the notation of}}
+\State \verb!    mpz_set_ui(p, 1); mpz_mul_2exp(p, p, t);!
+  \Comment{$\mathtt p_0 = 2^t$}
+\State \verb!    mpz_set(q, x);!
+  \Comment{$\mathtt q_0 = \hat x$}
+\State \verb!    for (k = 1; k < n; k++) {!
+\State \verb!        mpz_mul(tmp, q, x); mpz_tdiv_q_2exp(tmp, tmp, t);!
+  \Comment{$\lceil \hat x \, \mathtt q_{k-1} \, 2^{-t} \rfloor$}
+\State \verb!        mpz_mul_si(p, p, -k*k)!
+\State \verb!        mpz_addmul_ui(p, tmp, 2*k+1);!
+  \Comment{$- k^2 \mathtt p_{k-1} + (2k+1) \, \mathtt{tmp}$}
+\State \verb!        mpz_swap(p, q);!
+\State \verb!        if (mpn_mul_1(&denlo, &den, 1, k+1)) {!
+  \Comment{If multiplication overflows}
+\State \verb!            mpz_tdiv_q_ui(p, p, den);!
+  \Comment{$\lceil \mathtt p / \mathtt d_{k-1} \rfloor$}
+\State \verb!            mpz_tdiv_q_ui(q, q, den);!
+\State \verb!            den = k+1;!
+  \Comment{$\mathtt d_{k} = k+1$}
+\State \verb!        } else den = denlo;!
+  \Comment{$\mathtt d_{k} = (k+1) \, \mathtt d_{k-1}$}
+\State \verb!    }!
+\State \verb!    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);!
+\State \verb!    mpz_clear(tmp);!
+\State \verb!}!
   \end{algorithmic}
-\begin{verbatim}
-void legendre(mpz_t p, mpz_t q, int n, const mpz_t x, int t) {
-    mpz_t tmp; int k; mpz_init(tmp);
-    mp_limb_t denlo, den = 1;
-    mpz_set_ui(p, 1); mpz_mul_2exp(p, p, t);
-    mpz_set(q, x);
-    for (k = 1; k < n; k++) {
-        mpz_mul(tmp, q, x); mpz_tdiv_q_2exp(tmp, tmp, t);
-        mpz_mul_si(p, p, -k*k); mpz_addmul_ui(p, tmp, 2*k+1);
-        mpz_swap(p, q);
-        if (mpn_mul_1(&denlo, &den, 1, k+1)) {
-            mpz_tdiv_q_ui(p, p, den); mpz_tdiv_q_ui(q, q, den);
-            den = k+1;
-        } else den = denlo;
-    }
-    mpz_tdiv_q_ui(p, p, den/n); mpz_tdiv_q_ui(q, q, den);
-    mpz_clear(tmp);
-}
-\end{verbatim}
 \end{algorithm}
 
 To bound the difference $\abs{\hat p_n \, 2^{-t} - p_n}$, we analyze
@@ -990,7 +1001,7 @@ We therefore need about $2n\sqrt{\max(0,-u)} / \ln(2)$ bits
 of increased precision.
 
 We can compute $P'_n$ from $P_n$ and $P_{n-1}$, but since this
-involves a division by $1-x^2$, it is useful to
+involves a division by $1-x^2$, it is better to
 evaluate $P'_n$ directly when $x$ is close to 1.
 We have
 $P'_n(x) = \sum_{k=0}^{n-1} c'_{n,k} u^k$
@@ -1138,7 +1149,7 @@ exceed $10^6$ (see \cite{Johansson2014rectangular}).
 \subsection{A note on the bit-burst method}
 
 Another technique for fast evaluation of hypergeometric series,
-binary splitting, would be useful when $p$ is large and the
+called binary splitting, would be useful when $p$ is large and the
 argument $x$ is a rational number with small numerator and denominator,
 but this case is not relevant for our application.
 
@@ -1444,15 +1455,16 @@ $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\
 numbers in parentheses show the speedup of our code compared to Pari/GP.}
 \label{tab:parispeedup}
 \begin{center}
+\setlength{\tabcolsep}{1ex}
 \begin{tabular}{ r | c c c c c }
 $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\ \hline\rule{0pt}{3ex}
-20      & 0.00059 (4.4)  &  0.00070 (3.1)  &  0.0015 (2.9)  &  0.0035 (2.9)  &  0.078 (3.9)  \\
-50      & 0.0043 (9.6)  &  0.0050 (5.8) &  0.010 (4.9)  &  0.022 (4.1) &  0.43 (6.0)  \\
-100     &  0.020 (15)   &   0.023 (7.4)  &   0.045 (6.3)  &  0.089 (5.5) &  1.5 (8.1)  \\
-200     &  0.11 (20)   &  0.13 (11)  &  0.24 (9.1)  &  0.45 (8.1)  &  6.5 (11)  \\
-500     &  2.0 (86)     & 2.1 (35)  &  2.9 (18)  &  5.1 (16)  &  58 (22)  \\
-1\,000  & 25 (477)    &  26 (180) &  29 (49)  &  39 (32)  & 300 (33) \\
-2\,000  &  496 (5\,767)   & 478 (1\,604)  &  474 (423)  &  532 (127)  &  1\,880 (58)  \\
+20      & 0.00059 (\footnotesize{$\times 4.4$)}  &  0.00070 (\footnotesize{$\times 3.1$)}  &  0.0015 (\footnotesize{$\times 2.9$)}  &  0.0035 (\footnotesize{$\times 2.9$)}  &  0.078 (\footnotesize{$\times 3.9$)}  \\
+50      & 0.0043 (\footnotesize{$\times 9.6$)}  &  0.0050 (\footnotesize{$\times 5.8$)} &  0.010 (\footnotesize{$\times 4.9$)}  &  0.022 (\footnotesize{$\times 4.1$)} &  0.43 (\footnotesize{$\times 6.0$)}  \\
+100     &  0.020 (\footnotesize{$\times 15$)}   &   0.023 (\footnotesize{$\times 7.4$)}  &   0.045 (\footnotesize{$\times 6.3$)}  &  0.089 (\footnotesize{$\times 5.5$)} &  1.5 (\footnotesize{$\times 8.1$)}  \\
+200     &  0.11 (\footnotesize{$\times 20$)}   &  0.13 (\footnotesize{$\times 11$)}  &  0.24 (\footnotesize{$\times 9.1$)}  &  0.45 (\footnotesize{$\times 8.1$)}  &  6.5 (\footnotesize{$\times 11$)}  \\
+500     &  2.0 (\footnotesize{$\times 86$)}     & 2.1 (\footnotesize{$\times 35$)}  &  2.9 (\footnotesize{$\times 18$)}  &  5.1 (\footnotesize{$\times 16$)}  &  58 (\footnotesize{$\times 22$)}  \\
+1\,000  & 25 (\footnotesize{$\times 477$)}    &  26 (\footnotesize{$\times 180$)} &  29 (\footnotesize{$\times 49$)}  &  39 (\footnotesize{$\times 32$)}  & 300 (\footnotesize{$\times 33$)} \\
+2\,000  &  496 (\footnotesize{$\times 5\,767$)}   & 478 (\footnotesize{$\times 1\,604$)}  &  474 (\footnotesize{$\times 423$)}  &  532 (\footnotesize{$\times 127$)}  &  1\,880 (\footnotesize{$\times 58$)}  \\
 \end{tabular}
 \end{center}
 \end{table}
