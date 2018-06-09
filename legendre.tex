@@ -354,8 +354,8 @@ Therefore, to ensure that the enclosure output by our evaluation
 algorithm contains the image of the input, it is enough to have bounds
 on the truncation errors associated to each of the approximate
 expressions of~$P_n$ that we use.
-The corresponding bounds are stated in equations \eqref{eq:truncerr0},
-\eqref{eq:truncerr1}, and \eqref{eq:truncerr2}.
+The corresponding bounds are stated in equations \cref{eq:truncerr0},
+\cref{eq:truncerr1}, and \cref{eq:truncerr2}.
 
 To limit overestimation and computational overhead, we deviate from the
 direct use of ball arithmetic on two occasions.
@@ -478,11 +478,11 @@ methods:
 \begin{itemize}
   \item the iterative computation of~$P_n(x)$
   via the three-term recurrence~\cref{eq:recurrence},
-  \item the asymptotic expansion~\eqref{eq:asymptotic}
+  \item the asymptotic expansion~\cref{eq:asymptotic}
   of $P_n(x)$ as~$n \to \infty$,
-  \item the usual expanded expression \eqref{eq:pzeroseries0},
-  \eqref{eq:pzeroseries1} of $P_n$ in the monomial basis,
-  \item the analogous terminating expansion \eqref{eq:poneseries}
+  \item the usual expanded expression \cref{eq:pzeroseries0},
+  \cref{eq:pzeroseries1} of $P_n$ in the monomial basis,
+  \item the analogous terminating expansion \cref{eq:poneseries}
   at~$1$.
 \end{itemize}
 All three expansions can be written as hypergeometric
@@ -852,7 +852,7 @@ The coefficients $C_{n,k}$ are a hypergeometric sequence with
 \frac{C_{n,k}}{C_{n,k-1}} = \frac{(2k-1)^2}{4 k (2n+2k+1)}, \quad C_{n,0} = \frac{1}{\sqrt{\pi}} \frac{4^n}{(n+\tfrac{1}{2}) {2n \choose n}}.
 \end{equation}
 To evaluate the error bound, we can use the following inequality deduced
-from~\eqref{eq:Cnk-Gamma}:
+from~\cref{eq:Cnk-Gamma}:
 \begin{equation}
 \label{eq:truncerr0b}
 C_{n,k} \le \frac{1}{\pi n^{1/2}} \frac{k! n!}{2^k (n+k)!} \le \frac{1}{\pi n^{1/2}} \frac{k!}{(2n)^k},
@@ -946,7 +946,7 @@ provided that $\alpha < 1$.
 
 For bounding $A_{\sigma}(d,K)$ in this expression, and for selecting an
 appropriate truncation point $K$, we use the binomial closed forms
-\eqref{eq:pzeroseries0}, \eqref{eq:pzeroseries1} together with the
+\cref{eq:pzeroseries0}, \cref{eq:pzeroseries1} together with the
 remarks in \cref{sec:binomial}.
 
 The alternating series \cref{eq:pzeroseries0} and \cref{eq:pzeroseries1}
@@ -1248,7 +1248,7 @@ floating-point computations, working with logarithmic magnitudes to
 avoid underflow and overflow.
 For example, when~$A$ is the asymptotic series, we search for a
 small~$K_A$ such that $\log(K_A!/(2n\sin^{K_A}\theta)) \leq -(p + p_A)$
-for some small~$p_A$, in accordance with~\eqref{eq:truncerr0b}.
+for some small~$p_A$, in accordance with~\cref{eq:truncerr0b}.
 During the actual evaluation of the series expansions, $K_A$ and $p_A$ are then given;
 we compute rigorous upper bounds
 for the truncation error via
@@ -1422,7 +1422,7 @@ compute an initial enclosure with roughly machine precision,
 followed by refinements with the interval Newton method
 at doubling precision steps for very high precision.
 We deduce the quadrature weights thanks to the classical expression as
-functions of the nodes recalled in equation~\eqref{eq:glquad}.
+functions of the nodes recalled in equation~\cref{eq:glquad}.
 
 \Cref{tab:timings} shows timings for computing
 degree-$n$ Gauss-Legendre rules to $p$-bit precision
