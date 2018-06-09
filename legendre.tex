@@ -11,6 +11,7 @@
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{hyperref}
+\usepackage{microtype}
 
 \newsiamremark{remark}{Remark}
 
@@ -1684,11 +1685,11 @@ function evaluations, where $m \approx 10^1$.
 The picture becomes more complicated when accounting for the method
 used to estimate errors in an adaptive integration algorithm.
 One drawback of the Gauss-Legendre scheme is that the nodes
-are not nested, and therefore an adaptive strategy that
+are not nested, so that an adaptive strategy that
 repeatedly doubles the quadrature degree
-requires twice the number of function evaluations as
+requires twice as many function evaluations as
 the degree of the final level.
-However, this drawback disappears if the
+This drawback disappears if the
 error is estimated by extrapolation or if an error bound is computed
 a priori as in the Petras algorithm~\cite{petras2002self}.
 
@@ -1697,7 +1698,7 @@ a priori as in the Petras algorithm~\cite{petras2002self}.
 In \cite{bailey2011high}, it was claimed that
 ``There is no known scheme for generating Gaussian abscissa--weight pairs
 that avoids [the] quadratic dependence
-on $n$. High-precision abscissas
+on~$n$. High-precision abscissas
 and weights, once computed, may be stored for future use. But for truly
 extreme-precision calculations -- i.e., several thousand digits or
 more -- the cost of computing them
@@ -1728,7 +1729,7 @@ are computed independently.
 A natural extension of this work would be to
 consider Gaussian quadrature rules for different
 weight functions.
-The techniques that work for Legendre polynomials should transfer to other
+The techniques should transfer to other
 classical orthogonal polynomials (Jacobi, Hermite, Laguerre, etc.)
 which likewise have hypergeometric expansions
 and satisfy three-term recurrence relations.
