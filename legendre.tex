@@ -372,7 +372,7 @@ necessary) and $P'_n(x)$ and use a first-order bound
 to separately bound the propagated error.
 Similarly, we use a bound for $P''_n$ to compute a reasonably
 tight enclosure for $P'_n([m \pm r])$.
-Suitable bounds are given in \cref{prop:prop-bound} below.
+Suitable bounds are given in \cref{prop:prop-bound}.
 
 \begin{lemma} \label{lemma:majorants}
 Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
@@ -1159,7 +1159,6 @@ Another technique for fast evaluation of hypergeometric series,
 called binary splitting, would be useful when $p$ is large and the
 argument $x$ is a rational number with small numerator and denominator,
 but this case is not relevant for our application.
-
 Binary splitting also forms the basis of the bit-burst
 method~\cite[Section 4]{ChudnovskyChudnovsky1990}, which permits
 evaluating any fixed hypergeometric series at any fixed point---without
@@ -1410,33 +1409,8 @@ currently seems to have limited practical value for this application.
 
 \subsection{Quadrature nodes}
 
-The function
-\texttt{arb\_hypgeom\_legendre\_p\_ui\_root(x, w, n, k, p)}
-sets the output variable
-$x$ to a ball containing the root of $P_n$ with index~$k$ (we use the indexing
-$0 \le k < n$, with $k = 0$ giving the root closest to 1),
-computed to $p$-bit precision.
-It also sets $w$ to the corresponding quadrature weight.
-We use the formulae in \cite[Theorem~1(c)]{petras1999computation} to
-compute an initial enclosure with roughly machine precision,
-followed by refinements with the interval Newton method
-at doubling precision steps for very high precision.
-We deduce the quadrature weights thanks to the classical expression as
-functions of the nodes recalled in equation~\cref{eq:glquad}.
-
-\Cref{tab:timings} shows timings for computing
-degree-$n$ Gauss-Legendre rules to $p$-bit precision
-by calling this function repeatedly with $0 \le k < n / 2$.
-\Cref{tab:parispeedup} compares our code
-to the \texttt{intnumgaussinit} function in Pari/GP
-which uses a generic polynomial root isolation strategy
-followed by Newton iteration for high precision refinement.
-The improvement is most dramatic for small~$p$ and large~$n$ where
-we benefit from using asymptotic expansions, but we also obtain a
-consistent speedup for large $p$.
-
 \begin{table}[t!]
-\caption{Time in seconds to compute the set of degree-$n$ Gauss-Legendre nodes and weights with $p$-bit precision
+\caption{Time in seconds to compute the degree-$n$ Gauss-Legendre rules with $p$-bit precision
 using our code.
 (For large $n$ and $p$, the time was estimated by computing a subset of the nodes and weights.)}
 \label{tab:timings}
@@ -1469,7 +1443,7 @@ $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\
 %  496.0       478.0       474.0        532.0       1880.0
 
 \begin{table}[t!]
-\caption{Time in seconds for Pari/GP to compute the degree-$n$ Gauss-Legendre quadrature nodes and weights with $p$-bit precision. The
+\caption{Time in seconds for Pari/GP to compute the degree-$n$ Gauss-Legendre quadrature rules with $p$-bit precision. The
 numbers in parentheses show the speedup of our code compared to Pari/GP.}
 \label{tab:parispeedup}
 \begin{center}
@@ -1486,6 +1460,31 @@ $n\, \backslash \; p$ & 64 & 256 & 1\,024 & 3\,333 & 33\,333 \\ \hline\rule{0pt}
 \end{tabular}
 \end{center}
 \end{table}
+
+The function
+\texttt{arb\_hypgeom\_legendre\_p\_ui\_root(x, w, n, k, p)}
+sets the output variable
+$x$ to a ball containing the root of $P_n$ with index~$k$ (we use the indexing
+$0 \le k < n$, with $k = 0$ giving the root closest to 1),
+computed to $p$-bit precision.
+It also sets $w$ to the corresponding quadrature weight.
+We use the formulae in \cite[Theorem~1(c)]{petras1999computation} to
+compute an initial enclosure with roughly machine precision,
+followed by refinements with the interval Newton method
+at doubling precision steps for very high precision.
+We deduce the quadrature weights thanks to the classical expression as
+functions of the nodes recalled in equation~\cref{eq:glquad}.
+
+\Cref{tab:timings} shows timings for computing
+degree-$n$ Gauss-Legendre rules to $p$-bit precision
+by calling this function repeatedly with $0 \le k < n / 2$.
+\Cref{tab:parispeedup} compares our code
+to the \texttt{intnumgaussinit} function in Pari/GP
+which uses a generic polynomial root isolation strategy
+followed by Newton iteration for high precision refinement.
+The improvement is most dramatic for small~$p$ and large~$n$ where
+we benefit from using asymptotic expansions, but we also obtain a
+consistent speedup for large $p$.
 
 For low precision and large $n$, our implementation
 is about three orders of magnitude slower than the machine precision
