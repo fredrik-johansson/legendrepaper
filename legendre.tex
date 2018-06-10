@@ -258,13 +258,13 @@ In this work, we develop rigorous and more practical alternatives to the
 asymptotically fast algorithm outlined above.
 Our main contribution is to give a complete evaluation strategy
 for Legendre polynomials on $[-1,1]$ in ball arithmetic~\cite{vdH:ball,Johansson2017arb}.
-Computing the Legendre polynomial roots, then,
+Computing the Gauss-Legendre nodes, then,
 is a relatively simple application of the results
 in~\cite{petras1999computation} together with
 the interval Newton method~\cite{moore1979methods}.
 For generating Gauss-Legendre quadrature rules with $n \sim p$,
-our algorithm has an asymptotic complexity of $\OOtilde(n^3)$ like
-classical methods. However, our algorithm has much lower overhead.
+our algorithm has an asymptotic bit complexity of $\OOtilde(n^3)$ like
+classical methods, but much lower overhead.
 For parameters $p, n \leq 10^5$ which are most relevant to
 applications, the observed running time is effectively subcubic.
 Our algorithm outperforms that of \cref{thm:complexity} for
