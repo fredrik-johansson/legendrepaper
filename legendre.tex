@@ -262,7 +262,7 @@ Computing the Gauss-Legendre nodes, then,
 is a relatively simple application of the results
 in~\cite{petras1999computation} together with
 the interval Newton method~\cite{moore1979methods}.
-For generating Gauss-Legendre quadrature rules with $n \sim p$,
+For generating Gauss-Legendre quadrature rules with $n \sim \alpha p$,
 our algorithm has an asymptotic bit complexity of $\OOtilde(n^3)$ like
 classical methods, but much lower overhead.
 For parameters $p, n \leq 10^5$ which are most relevant to
@@ -1707,7 +1707,7 @@ In this quote, ``quadratic dependence'' refers to the number of arithmetic opera
 We may remark that using asymptotic expansions in the
 evaluation of Legendre polynomials avoids the quadratic
 dependence on~$n$ for fixed precision $p$, and \cref{thm:complexity}
-avoids the implied cubic time dependence on $n$ when $n \sim p$.
+avoids the implied cubic time dependence on $n$ when $n = \OO(p)$.
 In fact, \cref{thm:complexity} implies that
 Gauss-Legendre, Clenshaw-Curtis and double exponential
 quadrature have the same quasi-optimal asymptotic bit complexity,
