@@ -124,6 +124,7 @@ quadrature must not be over-interpreted.
 Indeed, the rate of convergence of Gauss-Legendre quadrature is \emph{not} optimal asymptotically
 when $n \to \infty$ for analytic $f$
 on a fixed neighborhood, being improvable by a small factor~\cite{Trefethen2011}.}
+
 In general, the error in~\cref{eq:glquad} can be bounded in terms of
 $\sup_{x \in (-1,1)} |f^{(2n)}(x)|$, or, if $f$ is analytic on an
 elliptical domain~$D$ with foci at~$\pm 1$, in terms of
@@ -131,10 +132,10 @@ $\sup_{z \in D} |f(z)|$ and the semi-axes of the ellipse.
 Even when the conditions are not ideal for using \cref{eq:glquad} directly,
 rapid convergence is often possible
 by combining~\cref{eq:glquad}
-with adaptive subdivision of the integration path~\cite{petras2002self}.%
-\footnote{See \cref{sec:vsothers} for further comments on the choice of
-Gauss-Legendre quadrature over alternative methods, such as
-Clenshaw-Curtis quadrature.}
+with adaptive subdivision of the integration path~\cite{petras2002self}.
+We give some elements of comparison between Gauss-Legendre quadrature and
+alternative methods,  such as Clenshaw-Curtis quadrature, in
+\cref{sec:vsothers}.
 
 The Gauss-Legendre scheme has the drawback
 that the quadrature nodes and weights are
@@ -243,10 +244,11 @@ in practice, in large part due to the need to work
 with greatly increased precision.
 Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
-makes parallelization difficult%
-\footnote{See also \cref{sec:bitburst} for an alternative approach
-that leads to a similar complexity bound and may prove more practical
-for extremely large~$p$.}.
+makes parallelization difficult.
+As discussed in \cref{sec:bitburst} below, an approach based on the
+``bit-burst'' evaluation method for hypergeometric series
+leads to a similar complexity bound and may prove more practical
+for extremely large~$p$, but likely not for~$p \leq 10^6$.
 We can achieve a slightly worse but still subcubic
 complexity of $\OOtilde(n^{5/2})$
 by employing
