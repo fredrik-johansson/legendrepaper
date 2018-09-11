@@ -1249,7 +1249,7 @@ We select $K_A$ and estimate $p_A$ heuristically using machine precision
 floating-point computations, working with logarithmic magnitudes to
 avoid underflow and overflow.
 For example, when~$A$ is the asymptotic series, we search for a
-small~$K_A$ such that $\log(K_A!/(2n\sin^{K_A}\theta)) \leq -(p + p_A)$
+small~$K_A$ such that $\log(K_A!/(2n\sin\theta)^{K_A}) \leq -(p + p_A)$
 for some small~$p_A$, in accordance with~\cref{eq:truncerr0b}.
 During the actual evaluation of the series expansions, $K_A$ and $p_A$ are then given;
 we compute rigorous upper bounds
