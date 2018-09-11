@@ -373,11 +373,13 @@ to separately bound the propagated error.
 Similarly, we use a bound for $P''_n$ to compute a reasonably
 tight enclosure for $P'_n([m \pm r])$.
 Suitable bounds are given in \cref{prop:prop-bound}.
+Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
+series $f(z)$, and write $f(z) \ll_z \hat f(z)$
+for two power series $f, \hat f$ if
+$\hat f$ has nonnegative coefficients and
+$| [z^n] f(z) | \leq [z^n] \hat f(z)$ for all $n$.
 
 \begin{lemma} \label{lemma:majorants}
-Denote by $[z^n] f(z)$ the coefficient of index $n$ in a power
-series $f(z)$, and write $f(z) \ll_z \hat f(z)$ if
-$| [z^n] f(z) | \leq [z^n] \hat f(z)$ for all $n$.
 If $f$, $g$, $\hat f$, $\hat g$ are such that
 $f(z) \ll_z \hat f(z)$ and $g(z) \ll_z \hat g(z)$, then
 $\int_0^z f \ll_z \int_0^z \hat f$ and
@@ -500,9 +502,9 @@ the expansion at~$0$ for large $p$ unless $x$ is close to~$1$;
 and finally the expansion at~$1$ in the remaining cases
 when $x$ is close to~$1$.
 
-At $p$-bit precision, it is sufficient to choose algorithms
-and internal evaluation parameters to target
-an absolute error of $2^{-p-\OO(\log n)}$, corresponding to
+For an evaluation at $p$-bit precision, we choose parameters such as
+truncation orders and internal working precision to target an absolute
+error of $2^{-p-p'}$ for some $p' = \OO(\log n)$, corresponding to
 a relative error of about $2^{-p}$ measured with respect
 to monotone envelopes for $P_n(x)$ and $P'_n(x)$ as in~\cite{Bogaert2012}.
 The relative error of a computed ball for $P_n(x)$ where $x$ is near a zero $x_k$
@@ -547,7 +549,8 @@ floating-point and interval operations.
 Suppose $x = \hat x \, 2^{-t}$ with $\hat x \in \mathbb Z$
 is a given fixed-point number.
 Let $\lceil u \rfloor$ denote the integer truncation of a real
-number~$u$ (any other rounding function would do).
+number~$u$ (note that this is not the same thing as rounding to the nearest
+integer; however, any rounding function would do).
 The integer sequence $(\hat p_n)$ defined by
 \begin{equation} \label{eq:rec-fxpt}
   \hat{p}_0 = 2^t, \qquad
@@ -612,7 +615,7 @@ The bound is based on a classical linearity argument (compare, e.g.,
 \cite{Wimp1984}) combined with majorant series techniques.
 
 \begin{proposition} \label{prop:rec-error}
-Suppose that a sequence $(\tilde p_n)_{n \geq -1}$ satisfies
+Suppose that a real sequence $(\tilde p_n)_{n \geq -1}$ satisfies
 $\tilde p_0 = 1$ and
 \begin{equation} \label{eq:rec-pert}
   \tilde{p}_{n + 1} =
