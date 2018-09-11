@@ -244,7 +244,7 @@ with greatly increased precision.
 Working with expanded polynomials and
 processing all roots simultaneously also results in high memory usage and
 makes parallelization difficult%
-\footnote{See also \cref{sec:serieseval} for an alternative approach
+\footnote{See also \cref{sec:bitburst} for an alternative approach
 that leads to a similar complexity bound and may prove more practical
 for extremely large~$p$.}.
 We can achieve a slightly worse but still subcubic
@@ -1168,6 +1168,8 @@ performs better until both $K$ and~$p$
 exceed $10^6$ (see \cite{Johansson2014rectangular}).
 
 \subsection{A note on the bit-burst method}
+
+\label{sec:bitburst}
 
 Another technique for fast evaluation of hypergeometric series,
 called binary splitting, would be useful when $p$ is large and the
